@@ -25,14 +25,16 @@
     .divider{display:none}
     .pickerBox{height:var(--pickerH,285px);display:flex;flex-direction:column;align-items:center;pointer-events:auto;touch-action:none}
     .pickerTitle{font-size:var(--titleFs,18px);letter-spacing:.07em;font-weight:400;line-height:1;color:rgba(var(--white),.92);text-transform:uppercase;margin-bottom:var(--titleMb,30px);white-space:nowrap}
-    .subPicker .pickerTitle{color:rgba(11,11,11,.78)}
-    .wheel{position:relative;width:var(--wheelW,150px);height:var(--wheelH,178px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--wheelGap,28px);overflow:hidden;cursor:ns-resize}
-    .pickItem{height:var(--pickH,44px);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:var(--pickFs,34px);line-height:1;color:rgba(var(--white),.18);transition:opacity .16s,transform .16s,font-weight .16s,color .16s}
-    .pickItem.active{color:rgba(var(--white),.98);font-weight:900;transform:scale(1.03)}
-    .pickItem.near{color:rgba(var(--white),.18);font-weight:800;transform:scale(.94)}
-    .subWheel .pickItem{height:58px}
-    .subIcon{display:block;max-width:76px;max-height:62px;filter:none;opacity:inherit}
+    .wheel{position:relative;width:var(--wheelW,150px);height:var(--wheelH,178px);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:ns-resize}
+    .wheelInner{display:flex;flex-direction:column;align-items:center;gap:var(--wheelGap,28px);transition:transform .18s ease-out;will-change:transform}
+    .wheel.dragging .wheelInner{transition:none}
+    .pickItem{position:relative;height:var(--pickH,44px);flex:none;display:flex;align-items:center;justify-content:center;font-weight:400;font-size:var(--pickFs,34px);line-height:1;color:rgba(var(--white),.18);transition:opacity .16s,transform .16s,font-weight .16s,color .16s}
+    .pickItem.active{color:rgba(var(--white),.98);font-weight:400;transform:scale(1.03)}
+    .pickItem.near{color:rgba(var(--white),.18);font-weight:400;transform:scale(.94)}
+    .subWheel .pickItem{height:var(--pickH,44px)}
+    .subIcon{display:block;max-width:36px;max-height:28px;filter:brightness(0) invert(1);opacity:.28}
     .pickItem.active .subIcon{opacity:1}
+    .pickItem.near .subIcon{opacity:.28}
 
     .bottomBar{position:absolute;left:50%;bottom:calc(var(--bottomY,69px) + var(--safeBot));transform:translateX(-50%);width:var(--bottomW,378px);height:var(--bottomH,112px);border:1px solid rgba(var(--white),.86);border-radius:var(--bottomR,56px);display:grid;grid-template-columns:1.15fr .72fr 1.15fr;overflow:hidden;z-index:8;color:rgba(var(--white),.72);background:transparent;pointer-events:auto}
     .seg{border:0;background:transparent;color:inherit;font-family:inherit;display:flex;align-items:center;justify-content:center;text-align:left;font-size:var(--segFs,19px);line-height:1.22;letter-spacing:.05em;font-weight:400;cursor:pointer;touch-action:manipulation}
@@ -40,9 +42,46 @@
     .seg.active{color:rgba(var(--white),.98);font-weight:800}
     .seg:active{transform:scale(.99)}
     .hamb{display:flex;flex-direction:column;gap:13px;align-items:center;justify-content:center}
+    .menuLabel{display:none !important;flex-direction:column;align-items:center;gap:6px;font-style:italic;letter-spacing:.08em}
+    .chev{width:18px;height:18px;border-right:2px solid rgba(var(--white),.9);border-bottom:2px solid rgba(var(--white),.9);transform:rotate(45deg) translate(-3px,-3px)}
     .hamb span{width:var(--hambW,42px);height:3px;border-radius:99px;background:rgba(var(--white),.90)}
     .bottomDropdown{position:absolute;left:50%;bottom:calc(var(--dropY,190px) + var(--safeBot));transform:translateX(-50%);width:196px;border-radius:20px;background:rgba(0,0,0,.68);border:1px solid rgba(255,255,255,.12);overflow:hidden;display:none;z-index:12}
     .bottomDropdown.open{display:block}
+    /* Desktop: a tárcsa balra, nagyban; a kezelőszervek jobb oldali oszlopba */
+    /* A hang be/ki kapcsolója a kiválasztott elemet körülölelő gyűrű. Halkan jelzi,
+       hogy gomb is, de nem vonja el a figyelmet a fő funkciótól, a görgetéstől. */
+    .sndRing{position:absolute;left:50%;top:50%;width:var(--ringD,60px);height:var(--ringD,60px);
+      margin:calc(var(--ringD,60px) / -2) 0 0 calc(var(--ringD,60px) / -2);
+      border:1.5px solid rgba(var(--white),.22);border-radius:50%;pointer-events:none;
+      transition:border-color .15s,box-shadow .15s}
+    .wheel.sndOn .sndRing{border-color:rgba(var(--white),.90);background:rgba(var(--white),.14)}
+    /* Desktop panel: kártya a kerekekkel, alatta a két kapcsoló, majd LIBRARY;
+       a hamburger a jobb felső sarokba, a DELETE NOTES a bal alsóba kerül. */
+    .desktop .topPickers{left:64%;right:auto;top:22vh;margin:0;width:min(340px,24vw);
+      padding:22px 18px;border:1px solid rgba(var(--white),.20);border-radius:24px;row-gap:16px}
+    .desktop .bottomBar{left:64%;right:auto;bottom:auto;
+      top:calc(22vh + var(--pickerH,285px) + 68px);
+      transform:none;width:min(340px,24vw);height:auto;border:none;border-radius:0;
+      display:flex;gap:14px;overflow:visible}
+    .desktop .bottomBar .seg{border:1px solid rgba(var(--white),.55);border-radius:20px;
+      flex:1 1 0;height:86px;line-height:1.25}
+    .deskBtn{display:none;position:absolute;align-items:center;justify-content:center;
+      border:1px solid rgba(var(--white),.55);border-radius:20px;background:transparent;
+      color:rgba(var(--white),.78);font-family:inherit;font-size:var(--segFs,19px);font-weight:700;
+      letter-spacing:.06em;cursor:pointer;pointer-events:auto;z-index:8;text-align:center}
+    .desktop .deskBtn{display:flex}
+    .desktop #libraryBtn{left:64%;width:min(340px,24vw);height:64px;
+      top:calc(22vh + var(--pickerH,285px) + 68px + 102px)}
+    .desktop #deleteBtn{left:4vw;bottom:6vh;top:auto;width:132px;height:70px;font-size:15px}
+    .desktop #menuBtn{position:fixed;top:4vh;right:4vw;width:92px;height:60px;border-radius:16px;
+      border:1px solid rgba(var(--white),.7);flex:none;z-index:20}
+    .desktop #menuBtn .hamb{gap:8px}
+    .ddItem.muted{opacity:.45;pointer-events:none;display:none}
+    .desktop .ddItem.muted{display:block}
+    .desktop #libraryItem,.desktop #clearPatternItem,.desktop #beatClickItem{display:none}
+    .desktop #gridFeelItem{display:block}
+    .desktop .bottomDropdown{position:fixed;top:calc(4vh + 70px);right:4vw;left:auto;bottom:auto;
+      transform:none;width:280px}
     .ddItem{padding:16px 18px;color:rgba(255,255,255,.92);font-size:15px;font-weight:700;cursor:pointer}
     .ddItem + .ddItem{border-top:1px solid rgba(255,255,255,.1)}
     .ddItem.active{background:rgba(255,255,255,.10);color:rgba(255,255,255,1)}
@@ -71,15 +110,17 @@
     <div class="divider"></div>
     <div class="pickerBox subPicker" id="subPicker"><div class="pickerTitle">Subdivision</div><div class="wheel subWheel" id="subWheel"></div></div>
   </div>
-  <div class="bottomDropdown" id="dropdown"><div class="ddItem" id="savePatternItem">Save Pattern</div><div class="ddItem" id="libraryItem">Library</div><div class="ddItem" id="beatClickItem">Beat Click</div><div class="ddItem" id="clearPatternItem">Clear</div></div>
+  <div class="bottomDropdown" id="dropdown"><div class="ddItem" id="libraryItem">Library</div><div class="ddItem" id="beatClickItem">Beat Click</div><div class="ddItem" id="clearPatternItem">Clear</div><div class="ddItem" id="gridFeelItem">Grid Feel</div><div class="ddItem muted" id="ddSoon">Personalization — coming soon</div></div>
+  <button class="deskBtn" id="libraryBtn">LIBRARY</button>
+  <button class="deskBtn" id="deleteBtn">DELETE<br>NOTES</button>
   <div class="bottomBar" id="bottomBar">
     <button class="seg" id="gridSnapBtn">GRID<br>SNAP</button>
-    <button class="seg menuSeg" id="menuBtn" aria-label="Menu"><span class="hamb"><span></span><span></span><span></span></span></button>
+    <button class="seg menuSeg" id="menuBtn" aria-label="Menu"><span class="hamb"><span></span><span></span><span></span></span><span class="menuLabel">MENU<span class="chev"></span></span></button>
     <button class="seg" id="groupBtn">GROUP<br>NOTES</button>
   </div>
-  <div class="modalOverlay" id="saveModal"><div class="modal"><div class="modalHeader"><div class="modalTitle">Save Pattern</div><div class="modalClose" id="saveClose">✕</div></div><div class="modalBody"><div class="fieldLabel">Name</div><input id="saveName" type="text" maxlength="40" placeholder="e.g. Verse A / 7-3 clave / ..." /><div class="modalActions"><div class="mBtn ghost" id="saveCancel">Cancel</div><div class="mBtn primary" id="saveConfirm">Save</div></div></div></div></div>
+  <div class="modalOverlay" id="saveModal"><div class="modal"><div class="modalHeader"><div class="modalTitle">Save Pattern</div><div class="modalClose" id="saveClose">✕</div></div><div class="modalBody"><div class="fieldLabel">Name</div><input id="saveName" type="text" maxlength="40" placeholder="e.g. Verse A / 7-3 clave / ..." /><div class="modalActions" id="saveUpdateRow" style="grid-template-columns:1fr;display:none"><div class="mBtn primary" id="saveUpdate">Update</div></div><div class="modalActions"><div class="mBtn ghost" id="saveCancel">Cancel</div><div class="mBtn primary" id="saveConfirm">Save as new</div></div></div></div></div>
   <div class="modalOverlay" id="bpmModal"><div class="modal"><div class="modalHeader"><div class="modalTitle">Tempo</div><div class="modalClose" id="bpmClose">✕</div></div><div class="modalBody"><div class="fieldLabel">BPM (30–240)</div><input id="bpmInput" type="text" inputmode="numeric" maxlength="3" placeholder="80" /><div class="modalActions"><div class="mBtn ghost" id="bpmCancel">Cancel</div><div class="mBtn primary" id="bpmConfirm">Set</div></div></div></div></div>
-  <div class="modalOverlay" id="libModal"><div class="modal"><div class="modalHeader"><div class="modalTitle">Library</div><div class="modalClose" id="libClose">✕</div></div><div class="modalBody"><div class="libList" id="libList"></div><div class="modalActions" style="grid-template-columns:1fr"><div class="mBtn ghost" id="libCloseBtn">Close</div></div></div></div></div>
+  <div class="modalOverlay" id="libModal"><div class="modal"><div class="modalHeader"><div class="modalTitle">Library</div><div class="modalClose" id="libClose">✕</div></div><div class="modalBody"><div class="libList" id="libList"></div><div class="modalActions" style="grid-template-columns:1fr"><div class="mBtn primary" id="libSaveBtn">＋ Save current pattern</div></div><div class="modalActions" style="grid-template-columns:1fr"><div class="mBtn ghost" id="libCloseBtn">Close</div></div></div></div></div>
 </div>
 <script>
 (()=>{
@@ -87,7 +128,7 @@
   document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
   const tsWheel=document.getElementById('tsWheel'), subWheel=document.getElementById('subWheel');
   const gridSnapBtn=document.getElementById('gridSnapBtn'), groupBtn=document.getElementById('groupBtn'), menuBtn=document.getElementById('menuBtn'), dropdown=document.getElementById('dropdown');
-  const savePatternItem=document.getElementById('savePatternItem'), libraryItem=document.getElementById('libraryItem'), beatClickItem=document.getElementById('beatClickItem'), clearPatternItem=document.getElementById('clearPatternItem');
+  const libraryItem=document.getElementById('libraryItem'), beatClickItem=document.getElementById('beatClickItem'), clearPatternItem=document.getElementById('clearPatternItem');
   const saveModal=document.getElementById('saveModal'), saveClose=document.getElementById('saveClose'), saveCancel=document.getElementById('saveCancel'), saveConfirm=document.getElementById('saveConfirm'), saveName=document.getElementById('saveName');
   const libModal=document.getElementById('libModal'), libClose=document.getElementById('libClose'), libCloseBtn=document.getElementById('libCloseBtn'), libList=document.getElementById('libList');
   const bpmModal=document.getElementById('bpmModal'), bpmClose=document.getElementById('bpmClose'), bpmCancel=document.getElementById('bpmCancel'), bpmConfirm=document.getElementById('bpmConfirm'), bpmInput=document.getElementById('bpmInput');
@@ -103,46 +144,180 @@
   function ensureAudio(){if(audioCtx.state==='suspended')audioCtx.resume().catch(()=>{})}
   function clickSound({freq=1200,gain=.28,dur=.05,type='square'}={}){ensureAudio();const now=audioCtx.currentTime,osc=audioCtx.createOscillator(),g=audioCtx.createGain();osc.type=type;osc.frequency.setValueAtTime(freq,now);g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(gain,now+.001);g.gain.exponentialRampToValueAtTime(.0001,now+dur);osc.connect(g);g.connect(audioCtx.destination);osc.start(now);osc.stop(now+dur+.01)}
   const noteClick=a=>clickSound({freq:a?1750:1200,gain:a?.33:.28,dur:.05,type:'square'}), beatClick=()=>clickSound({freq:430,gain:.22,dur:.045,type:'square'});
-  const tsOptions=[1,2,3,4,5,6,7,8], subOptions=[1,2,3,4,5,6,7,8]; let tsIndex=3,subIndex=3,beats=4,subdiv=4,gridSnap=true,beatClickOn=false,bpmMin=30,bpmMax=240,bpm=80,playing=false,beatPos=0,lastBeatInt=0,lastHitAt=new Map(),notes=[],groups=[],groupSeq=1,groupingsMode=false,openGroupId=null,paintSel=null;
+  // a felosztás kattintása: ugyanaz a karakter, kicsit magasabban és épphogy hallhatóan
+  const subClick=()=>clickSound({freq:600,gain:.05,dur:.026,type:'square'});
+  const tsOptions=[1,2,3,4,5,6,7,8], subOptions=[1,2,3,4,5,6,7,8]; let tsIndex=3,subIndex=3,beats=4,subdiv=4,gridSnap=true,beatClickOn=true,subClickOn=false,currentName=null,dirty=false,gridFeel=[],gridMode=false,gridDrag=null,lastSubInt=0,bpmMin=30,bpmMax=240,bpm=80,playing=false,beatPos=0,lastBeatInt=0,lastHitAt=new Map(),notes=[],groups=[],groupSeq=1,groupingsMode=false,openGroupId=null,paintSel=null;
   const STORAGE_KEY='circlePatterns_v1';
   const readLibrary=()=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}catch{return {}}}, writeLibrary=o=>localStorage.setItem(STORAGE_KEY,JSON.stringify(o));
   // A hangok csak szöget és hangsúlyt visznek; a csoportok külön, szakaszként
   // mentődnek. A régi (v2/v3) mentések is betöltenek, csak csoport nélkül.
-  function snapshot(){return {version:4,beats,subdiv,bpm,gridSnap,beatClickOn,
-    notes:notes.map(n=>({angle:n.angle,accent:!!n.accent})),
+  function snapshot(){return {version:4,beats,subdiv,bpm,gridSnap,beatClickOn,subClickOn,gridFeel:[...gridFeel],
+    notes:notes.map(n=>({angle:n.angle,accent:!!n.accent,root:rootOf(n)})),
     groups:groups.map(g=>({a1:g.a1,a2:g.a2}))}}
-  function applySnapshot(s){if(!s)return;beats=s.beats??beats;subdiv=s.subdiv??subdiv;bpm=s.bpm??bpm;gridSnap=!!s.gridSnap;beatClickOn=!!s.beatClickOn;tsIndex=Math.max(0,tsOptions.indexOf(beats));subIndex=Math.max(0,subOptions.indexOf(subdiv));
+  function applySnapshot(s){if(!s)return;beats=s.beats??beats;subdiv=s.subdiv??subdiv;bpm=s.bpm??bpm;gridSnap=!!s.gridSnap;beatClickOn=!!s.beatClickOn;subClickOn=!!s.subClickOn;gridFeel=Array.isArray(s.gridFeel)?[...s.gridFeel]:[];tsIndex=Math.max(0,tsOptions.indexOf(beats));subIndex=Math.max(0,subOptions.indexOf(subdiv));
     notes.length=0;groups.length=0;openGroupId=null;
-    for(const n of(s.notes||[]))notes.push({id:Date.now()+Math.random(),angle:n.angle,accent:!!n.accent});
+    for(const n of(s.notes||[]))notes.push({id:Date.now()+Math.random(),angle:n.angle,accent:!!n.accent,root:n.root??nearestGridAngle(n.angle)});
     for(const g of(s.groups||[]))groups.push({id:groupSeq++,a1:g.a1,a2:g.a2});
-    lastHitAt.clear();renderAllUI()}
-  function openSaveModal(){closeDropdown();saveName.value='';saveModal.classList.add('open');setTimeout(()=>saveName.focus(),0)} function closeSaveModal(){saveModal.classList.remove('open')}
+    lastHitAt.clear();invalidateStash();dirty=false;renderAllUI()}
+  const libSaveBtn=document.getElementById('libSaveBtn'), saveUpdateRow=document.getElementById('saveUpdateRow'), saveUpdate=document.getElementById('saveUpdate');
+  // A mentés a Library-ből indul: ott látod a meglévő neveket, így nem csinálsz duplikátumot.
+  function openSaveModal(){closeDropdown();closeLibModal();
+    saveName.value=currentName||'';
+    const known=!!currentName&&!!readLibrary()[currentName];
+    saveUpdateRow.style.display=known?'grid':'none';
+    if(known)saveUpdate.textContent=`Update „${currentName}”`;
+    saveModal.classList.add('open');setTimeout(()=>{saveName.focus();saveName.select()},0)} function closeSaveModal(){saveModal.classList.remove('open')}
   function openLibModal(){closeDropdown();renderLibrary();libModal.classList.add('open')} function closeLibModal(){libModal.classList.remove('open')}
-  function renderLibrary(){const lib=readLibrary(),names=Object.keys(lib).sort((a,b)=>a.localeCompare(b));libList.innerHTML='';if(!names.length){const d=document.createElement('div');d.className='empty';d.textContent='No saved patterns yet.';libList.appendChild(d);return} for(const name of names){const s=lib[name],item=document.createElement('div');item.className='libItem';const left=document.createElement('div'),title=document.createElement('div'),meta=document.createElement('div');title.className='libName';title.textContent=name;meta.className='libMeta';meta.textContent=`${s.beats}/4 • ${s.subdiv}/4 • ${Math.round(s.bpm)} BPM • ${s?.notes?.length??0} notes`;left.append(title,meta);const right=document.createElement('div');right.className='libBtns';const load=document.createElement('div');load.className='mBtn primary mini';load.textContent='LOAD';load.onpointerdown=e=>{e.preventDefault();ensureAudio();applySnapshot(lib[name]);closeLibModal()};const del=document.createElement('div');del.className='mBtn danger mini';del.textContent='DEL';del.onpointerdown=e=>{e.preventDefault();ensureAudio();const l=readLibrary();delete l[name];writeLibrary(l);renderLibrary()};right.append(load,del);item.append(left,right);libList.appendChild(item)}}
-  function doSave(){ensureAudio();let name=(saveName.value||'').trim();if(!name)return;const lib=readLibrary();lib[name]=snapshot();writeLibrary(lib);closeSaveModal()}
+  function renderLibrary(){const lib=readLibrary(),names=Object.keys(lib).sort((a,b)=>a.localeCompare(b));libList.innerHTML='';if(!names.length){const d=document.createElement('div');d.className='empty';d.textContent='No saved patterns yet.';libList.appendChild(d);return} for(const name of names){const s=lib[name],item=document.createElement('div');item.className='libItem';const left=document.createElement('div'),title=document.createElement('div'),meta=document.createElement('div');title.className='libName';title.textContent=name;meta.className='libMeta';meta.textContent=`${s.beats}/4 • ${s.subdiv}/4 • ${Math.round(s.bpm)} BPM • ${s?.notes?.length??0} notes`;left.append(title,meta);const right=document.createElement('div');right.className='libBtns';const load=document.createElement('div');load.className='mBtn primary mini';load.textContent='LOAD';load.onpointerdown=e=>{e.preventDefault();ensureAudio();applySnapshot(lib[name]);currentName=name;dirty=false;closeLibModal()};const del=document.createElement('div');del.className='mBtn danger mini';del.textContent='DEL';del.onpointerdown=e=>{e.preventDefault();ensureAudio();const l=readLibrary();delete l[name];writeLibrary(l);if(currentName===name){currentName=null;dirty=true}renderLibrary()};right.append(load,del);item.append(left,right);libList.appendChild(item)}}
+  function storePattern(name){const lib=readLibrary();lib[name]=snapshot();writeLibrary(lib);
+    currentName=name;dirty=false;closeSaveModal()}
+  function doSave(){ensureAudio();const name=(saveName.value||'').trim();if(!name)return;storePattern(name)}
+  function doUpdate(){ensureAudio();if(currentName)storePattern(currentName)}
   menuBtn.onpointerdown=e=>{e.preventDefault();ensureAudio();dropdown.classList.toggle('open')};function closeDropdown(){dropdown.classList.remove('open')}
   phone.addEventListener('pointerdown',e=>{
     if(!dropdown.contains(e.target)&&!menuBtn.contains(e.target))closeDropdown();
   },{capture:true});
-  savePatternItem.onpointerdown=e=>{e.preventDefault();ensureAudio();openSaveModal()};libraryItem.onpointerdown=e=>{e.preventDefault();ensureAudio();openLibModal()};beatClickItem.onpointerdown=e=>{e.preventDefault();ensureAudio();beatClickOn=!beatClickOn;renderBeatClickMenu()};clearPatternItem.onpointerdown=e=>{e.preventDefault();ensureAudio();notes.length=0;groups.length=0;openGroupId=null;lastHitAt.clear();closeDropdown();renderButtons()};
-  saveConfirm.onpointerdown=e=>{e.preventDefault();doSave()};saveClose.onpointerdown=saveCancel.onpointerdown=e=>{e.preventDefault();closeSaveModal()};saveModal.onpointerdown=e=>{if(e.target===saveModal)closeSaveModal()};saveName.onkeydown=e=>{if(e.key==='Enter')doSave();if(e.key==='Escape')closeSaveModal()};
+  libraryItem.onpointerdown=e=>{e.preventDefault();ensureAudio();openLibModal()};beatClickItem.onpointerdown=e=>{e.preventDefault();ensureAudio();beatClickOn=!beatClickOn;renderButtons()};clearPatternItem.onpointerdown=e=>{e.preventDefault();ensureAudio();notes.length=0;groups.length=0;openGroupId=null;lastHitAt.clear();invalidateStash();closeDropdown();renderButtons()};
+  saveConfirm.onpointerdown=e=>{e.preventDefault();doSave()};saveUpdate.onpointerdown=e=>{e.preventDefault();doUpdate()};
+  libSaveBtn.onpointerdown=e=>{e.preventDefault();ensureAudio();openSaveModal()};
+  const libraryBtn=document.getElementById('libraryBtn'), deleteBtn=document.getElementById('deleteBtn');
+  libraryBtn.onpointerdown=e=>{e.preventDefault();ensureAudio();openLibModal()};
+  deleteBtn.onpointerdown=e=>{e.preventDefault();ensureAudio();
+    notes.length=0;groups.length=0;openGroupId=null;lastHitAt.clear();invalidateStash();renderButtons()};saveClose.onpointerdown=saveCancel.onpointerdown=e=>{e.preventDefault();closeSaveModal()};saveModal.onpointerdown=e=>{if(e.target===saveModal)closeSaveModal()};saveName.onkeydown=e=>{if(e.key==='Enter')doSave();if(e.key==='Escape')closeSaveModal()};
   libClose.onpointerdown=libCloseBtn.onpointerdown=e=>{e.preventDefault();closeLibModal()};libModal.onpointerdown=e=>{if(e.target===libModal)closeLibModal()};
   function openBpmModal(){closeDropdown();bpmInput.value=String(bpm);bpmModal.classList.add('open');setTimeout(()=>{bpmInput.focus();bpmInput.select()},0)} function closeBpmModal(){bpmModal.classList.remove('open')}
-  function applyBpm(){const v=parseInt(bpmInput.value,10);if(Number.isFinite(v))bpm=Math.max(bpmMin,Math.min(bpmMax,v));closeBpmModal()}
+  function applyBpm(){const v=parseInt(bpmInput.value,10);if(Number.isFinite(v))bpm=Math.max(bpmMin,Math.min(bpmMax,v));dirty=true;closeBpmModal()}
   bpmConfirm.onpointerdown=e=>{e.preventDefault();ensureAudio();applyBpm()};bpmClose.onpointerdown=bpmCancel.onpointerdown=e=>{e.preventDefault();closeBpmModal()};bpmModal.onpointerdown=e=>{if(e.target===bpmModal)closeBpmModal()};bpmInput.onkeydown=e=>{if(e.key==='Enter')applyBpm();if(e.key==='Escape')closeBpmModal()};
-  function makePicker(el,options,index,getLabel,setter,isSub=false){el.innerHTML='';[-1,0,1].forEach(off=>{const i=(index+off+options.length)%options.length,v=options[i],d=document.createElement('div');d.className='pickItem '+(off===0?'active':'near');if(isSub){const img=document.createElement('img');img.className='subIcon';img.src=icons[v];d.appendChild(img)}else d.textContent=getLabel(v);el.appendChild(d)});let startY=null,armed=false;el.onpointerdown=e=>{e.preventDefault();ensureAudio();startY=e.clientY;armed=true;el.setPointerCapture(e.pointerId)};el.onpointermove=e=>{if(!armed)return;const dy=e.clientY-startY;if(Math.abs(dy)>34){setter(dy>0?-1:1);startY=e.clientY}};el.onpointerup=e=>{armed=false;try{el.releasePointerCapture(e.pointerId)}catch{}};el.onwheel=e=>{e.preventDefault();setter(e.deltaY>0?1:-1)}}
-  // Az ütem/felosztás váltása már nem bontja szét a csoportokat: azok szög alapúak,
-  // a rács változása nem érvényteleníti őket.
-  function changeTs(step){tsIndex=(tsIndex+step+tsOptions.length)%tsOptions.length;beats=tsOptions[tsIndex];beatPos=beatPos%beats;lastBeatInt=Math.floor(beatPos);renderAllUI()}
-  function changeSub(step){subIndex=(subIndex+step+subOptions.length)%subOptions.length;subdiv=subOptions[subIndex];renderAllUI()}
+  // A kerék öt elemet rajzol, hogy görgetés közben se nyíljon lyuk a széleken.
+  function makePicker(el,options,index,getLabel,isSub=false){
+    el.innerHTML='';
+    const inner=document.createElement('div');inner.className='wheelInner';
+    for(const off of [-2,-1,0,1,2]){
+      const i=(index+off+options.length*2)%options.length,v=options[i],d=document.createElement('div');
+      d.className='pickItem '+(off===0?'active':'near');
+      if(isSub){const img=document.createElement('img');img.className='subIcon';img.src=icons[v];d.appendChild(img)}
+      else d.textContent=getLabel(v);
+      // a gyűrűt a tartalom után hozzuk létre (a textContent letörölné), de a
+      // tartalom ELÉ szúrjuk be, hogy a kitöltése ne fedje el a számot/ikont
+      if(off===0){const ring=document.createElement('span');ring.className='sndRing';d.insertBefore(ring,d.firstChild)}
+      inner.appendChild(d);
+    }
+    el.appendChild(inner);
+    if(el._drag)inner.style.transform=`translateY(${el._drag}px)`; // húzás közbeni eltolás túléli az újrarajzolást
+  }
+  // A húzás állapota a kerékre kerül, nem a makePicker záródásába: az elemeket
+  // minden értékváltás újraépíti, a gesztusnak viszont túl kell élnie azt.
+  function bindWheel(el,setter,onStart,onEnd,onTap){
+    const stepPx=()=>{const inner=el.firstElementChild;
+      return inner&&inner.children.length>1?inner.children[1].offsetTop-inner.children[0].offsetTop:72*layoutScale()};
+    const apply=()=>{const inner=el.firstElementChild;if(inner)inner.style.transform=`translateY(${el._drag}px)`};
+    let armed=false,startY=0,onActive=false,stepped=false;el._drag=0;
+    el.onpointerdown=e=>{e.preventDefault();ensureAudio();armed=true;startY=e.clientY;el._drag=0;
+      onActive=!!(e.target&&e.target.closest&&e.target.closest('.pickItem.active'));stepped=false;
+      el.classList.add('dragging');if(onStart)onStart();try{el.setPointerCapture(e.pointerId)}catch{}};
+    el.onpointermove=e=>{if(!armed)return;
+      const st=stepPx();let d=e.clientY-startY;
+      while(d>=st){setter(-1);startY+=st;d-=st;stepped=true}   // lefelé húzva az előző érték jön
+      while(d<=-st){setter(1);startY-=st;d+=st;stepped=true}
+      el._drag=d;apply();
+    };
+    const end=e=>{if(!armed)return;armed=false;el.classList.remove('dragging');
+      const st=stepPx();
+      if(el._drag>=st/2){setter(-1);stepped=true}else if(el._drag<=-st/2){setter(1);stepped=true} // elengedve a legközelebbire simul
+      if(onTap&&onActive&&!stepped&&Math.abs(el._drag)<6)onTap();   // tiszta koppintás az aktív elemen
+      el._drag=0;apply();if(onEnd)onEnd();
+      try{el.releasePointerCapture(e.pointerId)}catch{}};
+    el.onpointerup=end;el.onpointercancel=end;
+    el.onwheel=e=>{e.preventDefault();if(onStart)onStart();setter(e.deltaY>0?1:-1);if(onEnd)onEnd()};
+  }
+  // --- ütemmutató-váltás: sokszorozás és vágás ------------------------------
+  // A hangokat ütem-pozícióra számoljuk át, nem szögben mozgatjuk: ugyanaz a szög
+  // más ütemmutatónál mást jelent. Így a másolatok öröklik az eredeti off-grid
+  // finomhangolást és hangsúlyt is.
+  const toBeat=(a,B)=>norm2pi(a-base)/(Math.PI*2/B);
+  const toAngle=(p,B)=>base+p*(Math.PI*2/B);
+  // A levágott rész itt vár a visszatérésre — de csak addig, amíg hozzá nem nyúlsz
+  // a mintához. Bármilyen szerkesztés után a jelenlegi tartalom az igazság, és az
+  // sokszorozódik; enélkül a „1/4-en építek, majd 4/4-re váltok" eset nem működne.
+  let stash={notes:[],groups:[]},patternExtent=beats;
+  function invalidateStash(){stash={notes:[],groups:[]};patternExtent=beats;dirty=true}
+  function retimePattern(M,N){
+    const stepA=Math.PI*2/M;
+    const all={
+      notes:[...notes.map(n=>({p:toBeat(n.angle,M),r:toBeat(rootOf(n),M),accent:!!n.accent})),...stash.notes],
+      groups:[...groups.map(g=>({p1:toBeat(g.a1,M),len:(g.a2-g.a1)/stepA})),...stash.groups]};
+    if(N>patternExtent){                                  // nincs mit visszaadni: sokszorozunk
+      const E=patternExtent;
+      const srcN=all.notes.filter(x=>x.p<E),srcG=all.groups.filter(x=>x.p1<E);
+      for(let k=1;k*E<N;k++){
+        for(const x of srcN){const p=x.p+k*E;if(p<N)all.notes.push({p,r:x.r+k*E,accent:x.accent})}
+        for(const x of srcG){const p1=x.p1+k*E;if(p1<N)all.groups.push({p1,len:Math.min(x.len,N-p1)})}
+      }
+    }
+    patternExtent=Math.max(patternExtent,N);
+    stash={notes:all.notes.filter(x=>x.p>=N),groups:all.groups.filter(x=>x.p1>=N)};
+    notes.length=0;groups.length=0;openGroupId=null;lastHitAt.clear();
+    for(const x of all.notes)if(x.p<N)notes.push({id:Date.now()+Math.random(),angle:toAngle(x.p,N),accent:x.accent,root:toAngle(x.r,N)});
+    for(const x of all.groups)if(x.p1<N){
+      const a1=toAngle(x.p1,N),len=Math.min(x.len,N-x.p1);
+      groups.push({id:groupSeq++,a1,a2:a1+len*(Math.PI*2/N)});
+    }
+  }
+  // A felosztás váltása csak a rács sűrűségét változtatja, a mintához nem nyúl.
+  // Görgetés közben nem rendezzük át a mintát, csak a gesztus végén. Lépésenként
+  // 4/4-ből 8/4-be menet minden új ütés a legelsőnek a másolata lenne; egyben
+  // viszont a teljes 4 ütésnyi minta ismétlődik, ami a helyes eredmény.
+  let tsFrom=null;
+  function beginTs(){tsFrom=beats}
+  function endTs(){const M=tsFrom;tsFrom=null;if(M!==null&&M!==beats)retimePattern(M,beats);renderAllUI()}
+  function changeTs(step){
+    const M=beats;
+    tsIndex=(tsIndex+step+tsOptions.length)%tsOptions.length;
+    const N=tsOptions[tsIndex];
+    if(tsFrom===null&&N!==M)retimePattern(M,N);   // egyedi lépés: azonnal
+    beats=N;beatPos=beatPos%beats;lastBeatInt=Math.floor(beatPos);dirty=true;renderAllUI();
+  }
+  // Felosztás-váltás. Bekapcsolt GRID SNAP mellett a hangok ráugranak az új rács
+  // legközelebbi pontjára; kikapcsolva a helyükön maradnak, és az eltérésük
+  // mostantól az új rács legközelebbi pontjához képest értendő. Görgetés közben
+  // ez is csak a gesztus végén fut le, hogy a köztes rácsok ne rángassák a hangokat.
+  function applySubGrid(){
+    gridFeel=[];   // más osztásszám, a régi eltolások értelmüket vesztik
+    if(gridSnap){
+      for(const n of notes)n.angle=nearestGridAngle(n.angle);
+      // ritkuló rácson két hang egy helyre eshet: egy marad, a hangsúlyt megörökölve
+      const seen=new Map();
+      for(const n of notes){const k=gridIndex(n.angle),prev=seen.get(k);
+        if(prev)prev.accent=prev.accent||n.accent;else seen.set(k,n)}
+      if(seen.size<notes.length)notes.splice(0,notes.length,...seen.values());
+      invalidateStash();
+    }
+    for(const n of notes)n.root=nearestGridAngle(n.angle);
+    // a csoportok szélei is az új rácshoz igazodnak, hogy a kapszula a pontokon üljön
+    for(const g of groups){const a1=nearestGridAngle(g.a1);g.a1=a1;g.a2=Math.max(a1,nearestGridAngle(g.a2))}
+  }
+  let subDragging=false;
+  function beginSub(){subDragging=true}
+  function endSub(){subDragging=false;applySubGrid();renderAllUI()}
+  function changeSub(step){
+    subIndex=(subIndex+step+subOptions.length)%subOptions.length;subdiv=subOptions[subIndex];
+    if(!subDragging)applySubGrid();
+    dirty=true;renderAllUI();
+  }
   // a hosszú nyomás nélkül is kell: a kotta-ikonokon ne jöjjön elő a natív menü
   subWheel.addEventListener('contextmenu',e=>e.preventDefault());
   gridSnapBtn.onpointerdown=e=>{e.preventDefault();ensureAudio();gridSnap=!gridSnap;renderButtons()};
   // A GROUP NOTES gomb egyetlen dolgot csinál: be/kilép a csoportosító módból.
-  function setGroupMode(on){groupingsMode=on;paintSel=null;openGroupId=null;renderButtons()}
+  function setGroupMode(on){groupingsMode=on;paintSel=null;openGroupId=null;if(on)gridMode=false;renderButtons()}
+  // Grid Feel mód: a gyűrűn húzva magát a rácsot tolod el, nem a hangokat.
+  const gridFeelItem=document.getElementById('gridFeelItem');
+  function setGridMode(on){gridMode=on;gridDrag=null;if(on){groupingsMode=false;openGroupId=null}renderButtons()}
+  gridFeelItem.onpointerdown=e=>{e.preventDefault();ensureAudio();setGridMode(!gridMode)};
+  function renderGridMenu(){gridFeelItem.textContent=gridMode?'Grid Feel: ON':'Grid Feel';
+    gridFeelItem.classList.toggle('active',gridMode)}
   groupBtn.onpointerdown=e=>{e.preventDefault();ensureAudio();closeDropdown();setGroupMode(!groupingsMode)};
-  function renderButtons(){gridSnapBtn.classList.toggle('active',gridSnap);groupBtn.classList.toggle('active',groupingsMode);renderBeatClickMenu()}
-  function renderAllUI(){makePicker(tsWheel,tsOptions,tsIndex,v=>`${v}/4`,changeTs,false);makePicker(subWheel,subOptions,subIndex,v=>v,changeSub,true);renderButtons()}
+  function renderButtons(){tsWheel.classList.toggle('sndOn',beatClickOn);subWheel.classList.toggle('sndOn',subClickOn);gridSnapBtn.classList.toggle('active',gridSnap);groupBtn.classList.toggle('active',groupingsMode);renderBeatClickMenu();renderGridMenu()}
+  function renderAllUI(){makePicker(tsWheel,tsOptions,tsIndex,v=>`${v}/4`,false);makePicker(subWheel,subOptions,subIndex,v=>v,true);renderButtons()}
   // --- Csoport-modell -------------------------------------------------------
   // Egy csoport a gyűrű egy szakasza: {id,a1,a2} = az általa lefedett első és
   // utolsó rácspont szöge (a1===a2 esetén egyetlen rácspontot fed le). A tagság
@@ -150,18 +325,46 @@
   // szakaszba esik. Így hang nélkül is létezhet csoport, üres csoport is van, és
   // egy hang törlése nem szünteti meg a csoportot.
   const totalSlots=()=>beats*Math.max(1,subdiv);
-  function gridIndex(a){const t=totalSlots();return ((Math.round((a-base)/gridStepAngle())%t)+t)%t}
+  // --- torzítható rács (groove-sablon) ------------------------------------
+  // A gridFeel az ütésen belüli osztások eltolása, a rácsosztás törtrészében.
+  // Ütésenként ismétlődik, tehát egy mozdulattal az egész ütem feel-je áll.
+  // valódi moduló: a slotAngle-t negatív slot-indexszel is hívjuk (csoport
+  // visszafelé mozgatása a 0. slot határán át), a JS % viszont ott negatívat ad
+  const feelOf=i=>{const sd=Math.max(1,subdiv);return gridFeel[((i%sd)+sd)%sd]||0};
+  function slotAngle(i){const st=gridStepAngle();return base+i*st+feelOf(i)*st}
+  // A legközelebbi slot keresése: az elméleti jelöltet és a két szomszédját nézzük,
+  // mert az eltolás miatt a sorrend a határok közelében felborulhat.
+  function gridIndex(a){
+    const t=totalSlots(),st=gridStepAngle(),c=Math.round((a-base)/st);
+    let best=0,bd=Infinity;
+    for(let k=-1;k<=1;k++){const i=((c+k)%t+t)%t,d=Math.abs(shortestAngleDiff(a,slotAngle(i)));
+      if(d<bd){bd=d;best=i}}
+    return best;
+  }
+  // Egy osztás-osztály elmozgatása: a rá eső hangok (és a rootjuk) vele mennek.
+  function nudgeFeel(cls,delta){
+    const sd=Math.max(1,subdiv),st=gridStepAngle();
+    const cur=gridFeel[cls]||0,next=Math.max(-.49,Math.min(.49,cur+delta));
+    const d=(next-cur)*st;if(!d)return;
+    const moved=notes.filter(n=>gridIndex(n.angle)%sd===cls);
+    gridFeel[cls]=next;
+    for(const n of moved){n.angle+=d;n.root=rootOf(n)+d}
+    dirty=true;
+  }
   function groupIndices(g){
     const t=totalSlots(),n=Math.min(Math.round((g.a2-g.a1)/gridStepAngle())+1,t),i0=gridIndex(g.a1),out=[];
     for(let k=0;k<n;k++)out.push((i0+k)%t);
     return out;
   }
   const groupCount=g=>groupIndices(g).length;            // ennyi rácspontot fed le — ez a kiírt szám
+  // A szín a darabszámból jön, tehát az azonos hosszú csoportok mindig azonos
+  // színűek — a 47-es lépés jól szórja az árnyalatokat 1..8 között.
+  const groupHue=n=>(n*47+15)%360;
   const groupHas=(g,a)=>groupIndices(g).includes(gridIndex(a));
   const groupOf=n=>groups.find(g=>groupHas(g,n.angle))||null;
   const membersOf=g=>notes.filter(n=>groupHas(g,n.angle));
   const groupById=id=>groups.find(g=>g.id===id)||null;
-  function deleteGroup(g){if(!g)return;groups.splice(groups.indexOf(g),1);if(openGroupId===g.id)openGroupId=null}
+  function deleteGroup(g){if(!g)return;groups.splice(groups.indexOf(g),1);if(openGroupId===g.id)openGroupId=null;invalidateStash()}
   // Egymást fedő rácsosztásoknál az új szakasz nyer: a régiből annyi marad, amit
   // nem takart el — akár két külön darabban is.
   function carveOut(taken,exceptId){
@@ -192,57 +395,123 @@
     const g={id:groupSeq++,a1,a2};
     carveOut(groupIndices(g));
     groups.push(g);
+    // üresen megrajzolt csoport kap egy alap-hangot az első helyére
+    if(!membersOf(g).length)notes.push({id:Date.now()+Math.random(),angle:g.a1,accent:false,root:g.a1});
+    invalidateStash();
     return g;
   }
-  // --- ütközés-feloldás húzás után ------------------------------------------
-  // Húzáskor a csoportok nem harapnak egymásba. Elengedéskor a húzott vagy
-  // visszaugrik az álló csoport közelebbi széléhez, vagy — ha a közepén túljutott —
-  // helyet cserélnek vele. A pár külső szélei mindkét esetben a helyükön maradnak.
-  const stateSnapshot=()=>({gs:groups.map(g=>({g,a1:g.a1,a2:g.a2})),ns:notes.map(n=>({n,a:n.angle}))});
-  function restoreState(s){for(const r of s.gs){r.g.a1=r.a1;r.g.a2=r.a2}for(const r of s.ns)r.n.angle=r.a}
-  function anyOverlap(){
-    for(let i=0;i<groups.length;i++){const A=new Set(groupIndices(groups[i]));
-      for(let j=i+1;j<groups.length;j++)if(groupIndices(groups[j]).some(x=>A.has(x)))return true}
-    return false;
+  // --- élő helycsere + animáció ---------------------------------------------
+  // A logikai pozíció (a1/a2 és a hangok szöge) azonnal a végleges értékre ugrik,
+  // és csak a RAJZOLÁS húz utána egy lecsengő eltolással (g.vis). Így a tagság, az
+  // ütközésvizsgálat és a lejátszás sosem lát félkész, animált állapotot.
+  const SWAP_MS=320,SETTLE_MS=180;
+  function slideFrom(g,delta,dur){g.vis=delta;g.vis0=delta;g.visT0=performance.now();g.visDur=dur}
+  function stepAnims(now){
+    for(const g of groups){
+      if(!g.vis0)continue;
+      const t=Math.min(1,(now-g.visT0)/g.visDur);
+      const e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;   // easeInOutCubic
+      g.vis=g.vis0*(1-e);
+      if(t>=1){g.vis=0;g.vis0=0}
+    }
   }
-  function resolveGroupDrag(g,d){
-    const t=totalSlots(),st=gridStepAngle(),cyc=x=>((x%t)+t)%t;
-    const droppedStart=gridIndex(g.a1),L=groupIndices(g).length,origStart=d.origStart;
-    // Vissza a húzás előtti, átfedésmentes állapotba: csak így egyértelmű, melyik
-    // hang melyik csoporté. Enélkül a rálógó csoport elvinné a másik hangjait.
-    restoreState(d.snapshot);
-    const steps=Math.round(d.acc/st);
-    const dropIdx=new Set();for(let k=0;k<L;k++)dropIdx.add(cyc(droppedStart+k));
-    let other=null,best=0;
-    for(const o of groups){if(o===g)continue;
-      const ov=groupIndices(o).filter(i=>dropIdx.has(i)).length;if(ov>best){best=ov;other=o}}
-    // a tagságokat még a tiszta állapotban rögzítjük, utána már csak ezeket mozgatjuk
-    const gm=membersOf(g).map(n=>({n,a:n.angle}));
-    const om=other?membersOf(other).map(n=>({n,a:n.angle})):[];
-    const shift=(gr,mem,slots)=>{const dd=slots*st;gr.a1+=dd;gr.a2+=dd;for(const m of mem)m.n.angle=m.a+dd};
-    if(!other){if(steps)shift(g,gm,steps);return}
-    const oIdx=groupIndices(other),OL=oIdx.length,oStart=oIdx[0],oEnd=oStart+OL-1,oCenter=oStart+(OL-1)/2;
-    const dir=steps>=0?1:-1;
-    // A csere küszöbe a PASSZÍV kapszula felezőpontja: akkor billen át, amikor az
-    // aktív kapszula haladás irányába eső éle túljut rajta.
-    const lead=dir>0?origStart+L-1:origStart;
-    const toCenter=dir>0?cyc(oCenter-lead):cyc(lead-oCenter);
-    let newStart,newOStart=null;
-    if(Math.abs(steps)>=toCenter){                      // helycsere, a pár külső szélei maradnak
-      if(dir>0){newOStart=origStart;newStart=oEnd-L+1}
-      else{newStart=oStart;newOStart=origStart+L-OL}
-    }else newStart=dir>0?oStart-L:oEnd+1;               // visszaugrás a közelebbi szélhez
-    const norm=x=>{let v=cyc(x);return v>t/2?v-t:v};
-    shift(g,gm,norm(newStart-origStart));
-    if(newOStart!==null)shift(other,om,norm(newOStart-oStart));
-    if(anyOverlap())restoreState(d.snapshot);           // egy harmadik is útban van: inkább vissza
+  const visOf=g=>g&&g.vis?g.vis:0;
+  // Egy csoport logikai eltolása egész rácsosztásokkal, a tagjaival együtt.
+  // A csoport tagjai SLOT szerint lépnek, nem fix szöggel: eltolt rácson a
+  // szomszédos rácspontok távolsága nem egyenlő, ezért egy fix szögű forgatás
+  // után a hangok a rácspontok közé esnének. A rootjuk a célslotra ül, a
+  // hozzá mért off-grid eltérésük pedig változatlan marad.
+  function shiftGroupBy(g,slots,animate,mem){
+    if(!slots)return;
+    const d=slots*gridStepAngle(),list=mem||membersOf(g);
+    g.a1+=d;g.a2+=d;                       // a csoport határai az elméleti rácson maradnak
+    for(const n of list){
+      const r=rootOf(n),dev=shortestAngleDiff(n.angle,r);
+      const nr=slotAngle(gridIndex(r)+slots);
+      n.root=nr;n.angle=nr+dev;
+    }
+    if(animate)slideFrom(g,-d,SWAP_MS);   // a látvány a régi helyről indul
   }
-  let W=0,H=0,dpr=1,lastW=0,lastH=0;
+  // Húzás közben: ha az aktív kapszula vezető éle túljut a haladás irányában
+  // ELŐTTE lévő legközelebbi csoport felezőpontján, azonnal helyet cserélnek.
+  // Csak az „előtte lévővel" cserél — enélkül a már megelőzött szomszéddal minden
+  // további mozdulatnál újra cserélne, és mindkét csoport elsodródna.
+  function liveSwap(d){
+    const st=gridStepAngle(),t=totalSlots(),cyc=x=>((x%t)+t)%t;
+    const sd=x=>{const v=cyc(x);return v>t/2?v-t:v};   // előjeles távolság, hogy a csere utáni
+    for(let guard=0;guard<16;guard++){                 // „még nem értem oda" ne csapjon át körbe
+
+      const g=groupById(d.gid);if(!g)return;
+      const dir=d.lastDir||0;if(!dir)return;
+      const L=groupIndices(g).length,dS=d.slotStart,dEnd=dS+L-1;
+      const slotPos=(g.a1-base)/st;                    // szabad, törtes helyzet
+      // a haladás irányában legközelebbi csoport
+      let o=null,od=Infinity;
+      for(const q of groups){
+        if(q===g)continue;
+        const qi=groupIndices(q),qS=qi[0],qE=qS+qi.length-1;
+        const gap=dir>0?sd(qS-dEnd):sd(dS-qE);
+        if(gap<1)continue;                             // nincs előttünk
+        if(gap<od){od=gap;o=q}
+      }
+      if(!o)return;
+      const oi=groupIndices(o),OL=oi.length,oS=oi[0],oE=oS+OL-1,oC=oS+(OL-1)/2;
+      const prog=dir>0?sd(slotPos-dS):sd(dS-slotPos);
+      const need=dir>0?sd(oC-dEnd):sd(dS-oC);
+      if(prog<need-1e-6)return;                        // még nem érte el a felezőpontot
+      const oMem=membersOf(o).filter(n=>!d.memberSet.has(n)); // az aktív csoport hangjai nem tartoznak ide
+      shiftGroupBy(o,(dir>0?dS:dS+L-OL)-oS,true,oMem);
+      d.slotStart=dir>0?oE-L+1:oS;                     // az aktív csoport új célhelye
+    }
+  }
+  // Elengedéskor: rácsra ül, és ha maradt átfedés, a szomszéd mellé simul.
+  function settleGroupDrag(g,d){
+    const st=gridStepAngle(),t=totalSlots(),cyc=x=>((x%t)+t)%t;
+    const L=groupIndices(g).length;
+    // Az ujj szerinti természetes hely a cél; a d.slotStart csak a csere-könyveléshez
+    // kell (hova kerüljön a megelőzött csoport). Ha erre ülnénk vissza, a cserével
+    // nem járó húzás — például egy teljes körös csoporté — mindig visszaugrana.
+    let target=cyc(Math.round((g.a1-base)/gridStepAngle()));
+    const taken=new Set();
+    for(const o of groups){if(o!==g)for(const i of groupIndices(o))taken.add(i)}
+    // a csoporton kívüli hangok helyei is foglaltak: egy rácshelyre egy hang
+    const mem=new Set(d.members.map(m=>m.n)),others=new Set();
+    for(const n of notes)if(!mem.has(n))others.add(gridIndex(n.angle));
+    const memberSlots=d.members.map(m=>gridIndex(m.r0));
+    const fits=x=>{
+      for(let k=0;k<L;k++)if(taken.has(cyc(x+k)))return false;
+      const shift=x-d.origStart;
+      return memberSlots.every(si=>!others.has(cyc(si+shift)));
+    };
+    if(!fits(target)){                                  // keressük a legközelebbi szabad helyet
+      let best=null;
+      for(let r=1;r<=t;r++)for(const cand of [target+r,target-r])
+        if(best===null&&fits(cyc(cand)))best=cyc(cand);
+      if(best!==null)target=best;
+    }
+    // Egész slot-különbség a KIINDULÓ helyzethez képest — a húzás közbeni szabad
+    // pozícióból számolva eltolt rácson elcsúsznának a hangok.
+    let dd=cyc(target-d.origStart);if(dd>t/2)dd-=t;
+    const before=g.a1;
+    g.a1=base+target*st;g.a2=g.a1+(L-1)*st;
+    for(const m of d.members){                          // mindenki a rögzített eredetijéből
+      const dev=shortestAngleDiff(m.a0,m.r0);
+      const nr=slotAngle(gridIndex(m.r0)+dd);
+      m.n.root=nr;m.n.angle=nr+dev;
+    }
+    slideFrom(g,before-g.a1+(g.vis||0),SETTLE_MS);      // a szabad helyzetből simán a rácsra
+  }  let W=0,H=0,dpr=1,lastW=0,lastH=0,frameNow=0,beatHit=[];
+  const PULSE_MS=170;   // a megszólalás utáni lecsengő tágulás hossza
+  // A negyed-jelölő tágulása, amikor a playhead áthalad rajta. Visszafogottabb,
+  // mint a hangoké: ez a háttérrács, nem az esemény maga.
+  function beatPulse(bi){const t=(frameNow-(beatHit[bi]??-1e9))/PULSE_MS;
+    return t>=0&&t<1?1+.20*Math.pow(1-t,2):1}
   function setCssVar(name,val){phone.style.setProperty(name,`${val}px`)}
   function updateLayoutVars(){
     const s=Math.min(W/460,H/1023);
+    phone.classList.toggle('desktop',isDesktop());
     const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
-    setCssVar('--topY', 98*s);
+    setCssVar('--topY', 68*s);
     setCssVar('--topW', clamp(356*s, 300, Math.max(300,W-56*s)));
     setCssVar('--pickerH', 285*s);
     setCssVar('--titleFs', clamp(18*s, 14, 22));
@@ -251,7 +520,8 @@
     setCssVar('--wheelH', 178*s);
     setCssVar('--wheelGap', 28*s);
     setCssVar('--pickH', 44*s);
-    setCssVar('--pickFs', clamp(34*s, 27, 42));
+    setCssVar('--pickFs', clamp(27*s, 21, 32));
+    setCssVar('--ringD', 60*s);
     setCssVar('--dividerTop', 92*s);
     setCssVar('--dividerH', 198*s);
     setCssVar('--bottomY', 24*s);
@@ -265,8 +535,26 @@
   function resize(force=false){const r=phone.getBoundingClientRect(),w=Math.floor(r.width),h=Math.floor(r.height);if(!force&&w===lastW&&h===lastH)return;lastW=w;lastH=h;dpr=Math.min(3,window.devicePixelRatio||1);canvas.width=Math.floor(w*dpr);canvas.height=Math.floor(h*dpr);canvas.style.width=w+'px';canvas.style.height=h+'px';ctx.setTransform(dpr,0,0,dpr,0,0);W=w;H=h;updateLayoutVars()} window.addEventListener('resize',()=>resize(true));if(window.visualViewport)window.visualViewport.addEventListener('resize',()=>resize(true));resize(true);
   const base=-Math.PI/2,norm2pi=a=>{const t=a%(Math.PI*2);return t<0?t+Math.PI*2:t}, shortestAngleDiff=(a,b)=>{let d=norm2pi(a)-norm2pi(b);if(d>Math.PI)d-=Math.PI*2;if(d<-Math.PI)d+=Math.PI*2;return d}, angleBetween=(cx,cy,x,y)=>Math.atan2(y-cy,x-cx);
   function crossedCCW(prevA,newA,targetA,eps=.002){return prevA<=newA?targetA>=prevA-eps&&targetA<=newA+eps:targetA>=prevA-eps||targetA<=newA+eps}
-  function layoutScale(){return Math.min(W/460,H/1023)} function dialCenter(){return {x:W/2,y:H*.598}} function dialRadius(){const s=layoutScale();return Math.max(110*s,Math.min(W*.39,H*.175))}
-  function gridAngles(){const total=beats*Math.max(1,subdiv),arr=[];for(let i=0;i<total;i++)arr.push(base+i*(Math.PI*2/total));return arr} function snapAngle(a){let best=gridAngles()[0],bd=1e9;for(const ga of gridAngles()){const d=Math.abs(shortestAngleDiff(a,ga));if(d<bd){bd=d;best=ga}}return best}
+  // A kezelőfelület (kerekek, gombok) skálája — a CSS változókat ez hajtja.
+  function layoutScale(){return Math.min(W/460,H/1023)}
+  // Desktopon a kör sokkal nagyobb, a gombok viszont nem nőnek vele: ezért a tárcsa
+  // saját skálán fut. Telefonon a kettő egybeesik, tehát ott semmi nem változik.
+  // függvénydeklaráció, mert a resize() már a betöltéskor hívja — konstansként még
+  // inicializálatlan lenne
+  function isDesktop(){return W>=900&&W>H}
+  const OUTER=1.38;                 // a legkülső tartalom (ütésszámok) sugara R-hez képest
+  function dialBox(){
+    if(isDesktop()){
+      // a referencia szerint a tárcsa a magasság ~76%-át foglalja, a középpont a szélesség ~32%-ánál
+      const cx=W*.32,cy=H*.5,outer=Math.min(W*.30,H*.38);
+      return {x:cx,y:cy,R:Math.max(120,outer/OUTER)};
+    }
+    return {x:W/2,y:H*.598,R:Math.max(90*layoutScale(),Math.min((W/2-4)/OUTER,H*.175))};
+  }
+  function dialCenter(){const b=dialBox();return {x:b.x,y:b.y}}
+  function dialRadius(){return dialBox().R}
+  function dialScale(){return dialRadius()/179}   // 179 = a telefonos R/s arány, hogy ott azonos maradjon
+  function snapAngle(a){return slotAngle(gridIndex(a))}
   function getNoteAngle(n){return n.angle}
   // A hangfejek sugara a legszűkebb szomszédos távolsághoz igazodik: sűrű rácsnál
   // (vagy egymáshoz közel húzott hangoknál) automatikusan összemennek, hogy soha
@@ -276,7 +564,7 @@
   // Két szomszédos rácspont húrhossza. 1 pontnál nincs szomszéd, tehát nincs korlát.
   function gridChord(){const total=beats*Math.max(1,subdiv);return total>1?2*dialRadius()*Math.sin(Math.PI/total):Infinity}
   function noteRadius(){
-    const s=layoutScale(),R=dialRadius();
+    const s=dialScale(),R=dialRadius();
     let gap=gridChord();
     if(notes.length>1){
       const as=notes.map(n=>norm2pi(getNoteAngle(n))).sort((u,v)=>u-v);
@@ -292,11 +580,33 @@
   // legnagyobb jelölő (az 1. ütés) és a szomszédos felosztás-pont együtt se érjen
   // össze: .62 + .34 < 1 rácslépés.
   function markerRadii(){
-    const s=layoutScale(),chord=gridChord();
-    return {sub:Math.min(16*s,chord*.34),beat:Math.min(28*s,chord*.50),first:Math.min(38*s,chord*.62)};
+    const s=dialScale(),chord=gridChord();
+    return {sub:Math.min(16*s,chord*.34),beat:Math.min(30*s,chord*.50)};   // sűrű rácson is a hang (.46) fölött marad
   }
   function gridStepAngle(){return Math.PI*2/Math.max(1,beats*Math.max(1,subdiv))}
-  function nearestGridAngle(a){const st=gridStepAngle();return base+Math.round((a-base)/st)*st}
+  function nearestGridAngle(a){return slotAngle(gridIndex(a))}
+  // --- swing-root -----------------------------------------------------------
+  // Minden hang egy „root" rácsponthoz tartozik, és ahhoz képest mutatjuk az
+  // eltérést. Egy egész rácsosztásnyi eltolás már nem feel, hanem pozícióváltás:
+  // ilyenkor a root lép egyet és a százalék nullázódik, így a szám sosem billen
+  // +50-ről -50-re, és végig a 0-99% sávban marad.
+  function rollRoot(n){
+    const st=gridStepAngle();
+    if(n.root==null){n.root=nearestGridAngle(n.angle);return}
+    let d=shortestAngleDiff(n.angle,n.root),guard=0;
+    while(Math.abs(d)>=st*.995&&guard++<64){n.root+=Math.sign(d)*st;d=shortestAngleDiff(n.angle,n.root)}
+  }
+  const rootOf=n=>n.root==null?nearestGridAngle(n.angle):n.root;
+  // Egy rácshelyre csak egy hang kerülhet: se lerakni, se ráhúzni nem lehet másikra.
+  const slotTaken=(slot,except)=>notes.some(n=>n!==except&&gridIndex(n.angle)===slot);
+  // GRID SNAP nélkül nem a rácshely számít, hanem a tényleges távolság: közel
+  // lehet húzni őket egymáshoz, csak pontosan egymásra nem.
+  const minSep=()=>Math.max(gridStepAngle()*.15,2*Math.asin(Math.min(1,3/dialRadius())));
+  function nearestOther(a,except){let best=null,bd=Infinity;
+    for(const n of notes){if(n===except)continue;const d=shortestAngleDiff(a,n.angle);
+      if(Math.abs(d)<Math.abs(bd)){bd=d;best=n}}
+    return {note:best,diff:bd};}
+  const tooClose=(a,except)=>{const {note,diff}=nearestOther(a,except);return !!note&&Math.abs(diff)<minSep()};
   // A csoport kapszulája: a sávra simuló, lekerekített végű körvonal.
   function capsulePath(cx,cy,R,h,a1,a2){
     const ro=R+h,ri=R-h;
@@ -310,12 +620,24 @@
   // A BPM kijelző koppintható mezője a középső korongon belül
   function bpmFieldRect(){const c=dialCenter(),iR=dialRadius()*.72;return {x:c.x-iR*.30,y:c.y+iR*.22,w:iR*.60,h:iR*.38}}
   function inBpmField(x,y){const r=bpmFieldRect();return x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h}
+  // A minta neve / „UNSAVED” felirat a BPM alatt — ez pótolja a SAVE hívószót:
+  // nem csak lehetőséget kínál, hanem megmondja, kell-e menteni.
+  function nameFieldRect(){const c=dialCenter(),iR=dialRadius()*.72;return {x:c.x-iR*.44,y:c.y+iR*.62,w:iR*.88,h:iR*.24}}
+  function inNameField(x,y){const r=nameFieldRect();return x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h}
+  const patternLabel=()=>currentName?(dirty?currentName+' •':currentName):'UNSAVED';
   function nearestNoteIndex(x,y){const c=dialCenter(),R=dialRadius();let best=-1,bd=1e9;for(let i=0;i<notes.length;i++){const a=getNoteAngle(notes[i]),nx=c.x+Math.cos(a)*R,ny=c.y+Math.sin(a)*R,d=Math.hypot(nx-x,ny-y);if(d<bd){bd=d;best=i}}return {best,bestDist:bd}}
-  function isOnRing(x,y){const c=dialCenter(),R=dialRadius(),d=Math.hypot(x-c.x,y-c.y);return Math.abs(d-R)<42}
+  function isOnRing(x,y){const c=dialCenter(),R=dialRadius(),d=Math.hypot(x-c.x,y-c.y);return Math.abs(d-R)<Math.max(42,46*dialScale())}
   let bpmDrag=null,tapCandidate=null,draggingNote=null,holdTimer=null,ringHold=null; function posFromEvent(ev){const r=phone.getBoundingClientRect();return {x:ev.clientX-r.left,y:ev.clientY-r.top}} function bpmFromDelta(delta){const span=bpmMax-bpmMin,v=Math.round(bpmDrag.startBpm+(delta/(Math.PI*2))*span);return Math.max(bpmMin,Math.min(bpmMax,v))}
   canvas.addEventListener('pointerdown',ev=>{
     ev.preventDefault();ensureAudio();canvas.setPointerCapture(ev.pointerId);
     const p=posFromEvent(ev),c=dialCenter(),R=dialRadius(),dc=Math.hypot(p.x-c.x,p.y-c.y);
+    // Grid Feel mód: a gyűrűn húzva az adott osztás-osztály tolódik el minden ütésben
+    if(gridMode){
+      if(!isOnRing(p.x,p.y)){setGridMode(false);return}
+      const a=angleBetween(c.x,c.y,p.x,p.y);
+      gridDrag={cls:gridIndex(a)%Math.max(1,subdiv),prevA:a,pointerId:ev.pointerId};
+      return;
+    }
     // Csoportosító mód: a sávon húzva jelölsz ki, koppintva törölsz, a gyűrű mellé koppintva kilépsz
     if(groupingsMode){
       if(!isOnRing(p.x,p.y)){setGroupMode(false);return}
@@ -327,13 +649,15 @@
     if(best!==-1&&bestDist<Math.max(noteRadius()*1.25,10)){
       const n=notes[best],g=groupOf(n),pa=angleBetween(c.x,c.y,p.x,p.y);
       if(openGroupId!==null&&(!g||g.id!==openGroupId))openGroupId=null; // másik egységre léptél
-      draggingNote={index:best,pointerId:ev.pointerId,mode:'note',prevA:pa,acc:0,clamp:null,gid:null,g0:null,members:null};
+      draggingNote={index:best,pointerId:ev.pointerId,mode:'note',prevA:pa,acc:0,clamp:null,gid:null,g0:null,members:null,
+        origA:n.angle,origR:rootOf(n)};
       if(g){
         if(openGroupId===g.id)draggingNote.clamp={a1:g.a1,a2:g.a2};   // nyitva: csak ez a hang, a szakaszon belül
         else{                                                          // zárva: az egész egység mozog
           draggingNote.mode='group';draggingNote.gid=g.id;draggingNote.g0={a1:g.a1,a2:g.a2};
-          draggingNote.members=membersOf(g).map(m=>({n:m,a0:m.angle}));
-          draggingNote.origStart=gridIndex(g.a1);draggingNote.snapshot=stateSnapshot();
+          draggingNote.members=membersOf(g).map(m=>({n:m,a0:m.angle,r0:rootOf(m)}));
+          draggingNote.origStart=draggingNote.slotStart=gridIndex(g.a1);
+          draggingNote.memberSet=new Set(draggingNote.members.map(m=>m.n));draggingNote.lastDir=0;
         }
       }
       tapCandidate={index:best,t0:performance.now(),x0:p.x,y0:p.y,pointerId:ev.pointerId};
@@ -344,25 +668,34 @@
       const og=groupById(openGroupId);
       if(!(og&&isOnRing(p.x,p.y)&&groupHas(og,angleBetween(c.x,c.y,p.x,p.y)))){openGroupId=null;return}
     }
+    if(inNameField(p.x,p.y)){openLibModal();return}
     if(inBpmField(p.x,p.y)){openBpmModal();return}
     if(dc<R*.28){playing=!playing;if(playing){beatPos=Math.floor(beatPos);lastBeatInt=Math.floor(beatPos);lastHitAt.clear()}return}
     if(dc<R*.58){bpmDrag={startAngle:angleBetween(c.x,c.y,p.x,p.y),startBpm:bpm,pointerId:ev.pointerId};return}
     if(isOnRing(p.x,p.y)){
       const pa=angleBetween(c.x,c.y,p.x,p.y),g=groups.find(gg=>groupHas(gg,pa));
-      if(g&&g.id!==openGroupId){ // kész csoporton: nyomva tartva megnyílik, húzva mozog — üresen is
+      if(g&&g.id!==openGroupId){ // kész csoporton: húzva mozog, koppintva hangot rak, nyomva tartva megnyílik
         draggingNote={index:-1,pointerId:ev.pointerId,mode:'group',prevA:pa,acc:0,clamp:null,gid:g.id,
-          g0:{a1:g.a1,a2:g.a2},members:membersOf(g).map(m=>({n:m,a0:m.angle})),
-          origStart:gridIndex(g.a1),snapshot:stateSnapshot()};
-        ringHold={x0:p.x,y0:p.y,pointerId:ev.pointerId};
+          g0:{a1:g.a1,a2:g.a2},members:membersOf(g).map(m=>({n:m,a0:m.angle,r0:rootOf(m)})),
+          origStart:gridIndex(g.a1),slotStart:gridIndex(g.a1),lastDir:0};
+        draggingNote.memberSet=new Set(draggingNote.members.map(m=>m.n));
+        ringHold={x0:p.x,y0:p.y,pointerId:ev.pointerId,addAt:gridSnap?snapAngle(pa):pa};
         holdTimer=setTimeout(()=>{openGroupId=g.id;holdTimer=null;ringHold=null;draggingNote=null},520);
         return;
       }
       let a=pa;if(gridSnap)a=snapAngle(a);
-      notes.push({id:Date.now()+Math.random(),angle:a,accent:false}); // szabad hely vagy épp nyitott csoport
+      if(!(gridSnap?slotTaken(gridIndex(a)):tooClose(a))){ // egymásra nem tehetünk hangot
+        notes.push({id:Date.now()+Math.random(),angle:a,accent:false,root:nearestGridAngle(a)});invalidateStash();
+      }
     }
   });
   canvas.addEventListener('pointermove',ev=>{
     ev.preventDefault();const p=posFromEvent(ev),c=dialCenter(),a=angleBetween(c.x,c.y,p.x,p.y);
+    if(gridDrag&&gridDrag.pointerId===ev.pointerId){
+      const d=shortestAngleDiff(a,gridDrag.prevA);gridDrag.prevA=a;
+      nudgeFeel(gridDrag.cls,d/gridStepAngle());
+      return;
+    }
     if(paintSel&&paintSel.pointerId===ev.pointerId){
       paintSel.acc+=shortestAngleDiff(a,paintSel.prevA);paintSel.prevA=a; // halmozva: a teljes kör is bejárható
       if(Math.hypot(p.x-paintSel.x0,p.y-paintSel.y0)>10)paintSel.moved=true;
@@ -379,25 +712,38 @@
       d.acc+=shortestAngleDiff(a,d.prevA);d.prevA=a;
       if(d.mode==='group'){
         const g=groupById(d.gid);
-        if(g){const off=Math.round(d.acc/st)*st;   // az egység egész rácsosztásokkal lép
+        if(g){const off=d.acc;                     // a kapszula végig az ujjat követi
+          const prev=g.a1;
           g.a1=d.g0.a1+off;g.a2=d.g0.a2+off;
-          for(const m of d.members)m.n.angle=m.a0+off;}
+          for(const m of d.members){m.n.angle=m.a0+off;m.n.root=m.r0+off}
+          if(g.a1!==prev)d.lastDir=g.a1>prev?1:-1;
+          liveSwap(d);                             // menet közben cserél, nem csak elengedéskor
+        }
       }else{
-        let t=a;if(gridSnap)t=snapAngle(t);
+        let t=a;                                   // a hang is szabadon követi az ujjat
         if(d.clamp){                                // nyitott csoportban a hang nem csúszhat ki a szakaszból
           const lo=d.clamp.a1-st/2,span=(d.clamp.a2-d.clamp.a1)+st,eps=st*.02;
           let rel=norm2pi(t-lo);
           if(rel>span)rel=(rel-span)<(Math.PI*2-rel)?span:0;
           t=lo+Math.max(eps,Math.min(span-eps,rel));
         }
-        notes[d.index].angle=t;
+        const n=notes[d.index];n.angle=t;rollRoot(n); // a 100% átlépése azonnal relokál
       }
       return;
     }
     if(bpmDrag&&bpmDrag.pointerId===ev.pointerId){const delta=shortestAngleDiff(a,bpmDrag.startAngle);bpm=bpmFromDelta(delta)}
   });
   function endPointer(ev){
+    if(gridDrag&&gridDrag.pointerId===ev.pointerId)gridDrag=null;
     if(holdTimer){clearTimeout(holdTimer);holdTimer=null}
+    // csoportra koppintás mozgás nélkül: hang lekerül, nem kell hozzá megnyitni
+    if(ringHold&&ringHold.pointerId===ev.pointerId){
+      if(!(gridSnap?slotTaken(gridIndex(ringHold.addAt)):tooClose(ringHold.addAt))){
+        notes.push({id:Date.now()+Math.random(),angle:ringHold.addAt,accent:false,root:nearestGridAngle(ringHold.addAt)});
+        invalidateStash();
+      }
+      draggingNote=null;
+    }
     ringHold=null;
     if(paintSel&&paintSel.pointerId===ev.pointerId){
       if(paintSel.moved)makeGroupFromArc(paintSel.a0,paintSel.acc);
@@ -406,31 +752,61 @@
       paintSel=null;renderButtons();
     }
     if(draggingNote&&draggingNote.pointerId===ev.pointerId){
-      if(draggingNote.mode==='group'){const g=groupById(draggingNote.gid);if(g)resolveGroupDrag(g,draggingNote)}
+      const d=draggingNote;
+      if(d.mode==='group'){const g=groupById(d.gid);if(g)settleGroupDrag(g,d)}
+      else if(!tapCandidate){const n=notes[d.index];
+        if(n){
+          if(gridSnap){
+            n.angle=snapAngle(n.angle);                      // elengedve rácsra ugrik
+            if(slotTaken(gridIndex(n.angle),n)){n.angle=d.origA;n.root=d.origR} // foglalt rácshely: vissza, ahonnan jött
+            else rollRoot(n);
+          }else{
+            // szabadon: nem ugrik vissza, csak megáll a szomszéd mellett
+            const {note:o,diff}=nearestOther(n.angle,n),ms=minSep();
+            if(o&&Math.abs(diff)<ms)n.angle=o.angle+(diff===0?(d.acc>=0?1:-1):Math.sign(diff))*ms;
+            rollRoot(n);
+          }
+        }}
+      if(draggingNote.acc)invalidateStash();
       draggingNote=null;
     }
     if(tapCandidate&&tapCandidate.pointerId===ev.pointerId){
       if(performance.now()-tapCandidate.t0<300){const n=notes[tapCandidate.index];
-        if(n){if(!n.accent)n.accent=true;else notes.splice(tapCandidate.index,1)}} // a csoport üresen is megmarad
+        if(n){if(!n.accent)n.accent=true;else notes.splice(tapCandidate.index,1);invalidateStash()}} // a csoport üresen is megmarad
       tapCandidate=null;
     }
     if(bpmDrag&&bpmDrag.pointerId===ev.pointerId)bpmDrag=null;
     try{canvas.releasePointerCapture(ev.pointerId)}catch{}
   }
   canvas.addEventListener('pointerup',ev=>{ev.preventDefault();endPointer(ev)});canvas.addEventListener('pointercancel',ev=>{ev.preventDefault();endPointer(ev)});
-  function stepPlayback(dt,nowMs){if(!playing)return;const prev=beatPos,beatDur=60/Math.max(1,bpm);beatPos+=dt/beatDur;while(beatPos>=beats)beatPos-=beats;const beatInt=Math.floor(beatPos);if(beatClickOn&&beatInt!==lastBeatInt)beatClick();lastBeatInt=beatInt;const prevA=norm2pi(base+prev*(Math.PI*2/beats)),newA=norm2pi(base+beatPos*(Math.PI*2/beats));for(const n of notes){const na=norm2pi(getNoteAngle(n));if(crossedCCW(prevA,newA,na,.002)){const last=lastHitAt.get(n.id)??-1e9;if(nowMs-last>45){noteClick(!!n.accent);lastHitAt.set(n.id,nowMs)}}}}
+  function stepPlayback(dt,nowMs){if(!playing)return;const prev=beatPos,beatDur=60/Math.max(1,bpm);beatPos+=dt/beatDur;let wrapped=false;while(beatPos>=beats){beatPos-=beats;wrapped=true}const beatInt=Math.floor(beatPos);if(beatInt!==lastBeatInt||wrapped){beatHit[beatInt]=nowMs;if(beatClickOn)beatClick()}lastBeatInt=beatInt;const sd=Math.max(1,subdiv),subInt=Math.floor(beatPos*sd);if(subClickOn&&(subInt!==lastSubInt||wrapped)&&!(subInt%sd===0&&beatClickOn))subClick();lastSubInt=subInt;const prevA=norm2pi(base+prev*(Math.PI*2/beats)),newA=norm2pi(base+beatPos*(Math.PI*2/beats));for(const n of notes){const na=norm2pi(getNoteAngle(n));if(crossedCCW(prevA,newA,na,.002)){const last=lastHitAt.get(n.id)??-1e9;if(nowMs-last>45){noteClick(!!n.accent);lastHitAt.set(n.id,nowMs);n.hit=nowMs}}}}
   function roundRectPath(ctx,x,y,w,h,r){const rr=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+rr,y);ctx.arcTo(x+w,y,x+w,y+h,rr);ctx.arcTo(x+w,y+h,x,y+h,rr);ctx.arcTo(x,y+h,x,y,rr);ctx.arcTo(x,y,x+w,y,rr);ctx.closePath()}
   function drawArcShortest(a1,a2,cx,cy,R){const d=shortestAngleDiff(a2,a1);ctx.beginPath();ctx.arc(cx,cy,R,a1,a1+d,d<0);ctx.stroke()}
   function draw(){resize(false);ctx.clearRect(0,0,W,H);
-    const c=dialCenter(),R=dialRadius(),s=layoutScale(),nr=noteRadius(),mr=markerRadii();
-    const bandW=54*s,innerR=R*.72,total=beats*Math.max(1,subdiv),head=base+beatPos*(Math.PI*2/beats);
+    const c=dialCenter(),R=dialRadius(),s=dialScale(),nr=noteRadius(),mr=markerRadii();
+    const bandW=(isDesktop()?44:54)*s,innerR=R*.72,total=beats*Math.max(1,subdiv),head=base+beatPos*(Math.PI*2/beats);
     // belső tárcsa: halvány korong + sűrű sugaras textúra
-    ctx.fillStyle='rgba(255,255,255,.05)';ctx.beginPath();ctx.arc(c.x,c.y,R-bandW*.55,0,Math.PI*2);ctx.fill();
-    ctx.lineCap='butt';ctx.lineWidth=Math.max(1,1.2*s);ctx.strokeStyle='rgba(255,255,255,.11)';ctx.beginPath();
-    for(let i=0;i<200;i++){const a=i*(Math.PI*2/200);ctx.moveTo(c.x+Math.cos(a)*R*.30,c.y+Math.sin(a)*R*.30);ctx.lineTo(c.x+Math.cos(a)*R*.80,c.y+Math.sin(a)*R*.80)}
+    ctx.fillStyle='rgba(255,255,255,.07)';ctx.beginPath();ctx.arc(c.x,c.y,R-bandW*.55,0,Math.PI*2);ctx.fill();
+    ctx.lineCap='butt';ctx.lineWidth=Math.max(1,1.2*s);ctx.strokeStyle='rgba(255,255,255,.15)';ctx.beginPath();
+    for(let i=0;i<200;i++){const a=i*(Math.PI*2/200);ctx.moveTo(c.x+Math.cos(a)*R*.30,c.y+Math.sin(a)*R*.30);ctx.lineTo(c.x+Math.cos(a)*R*.66,c.y+Math.sin(a)*R*.66)}
     ctx.stroke();
     // külső sáv + vonalkázás
-    ctx.lineWidth=bandW;ctx.strokeStyle='rgba(255,255,255,.13)';ctx.beginPath();ctx.arc(c.x,c.y,R,0,Math.PI*2);ctx.stroke();
+    // A sáv, a negyedek mögötti rombuszok és a jelölő-korongok EGYETLEN sziluett:
+    // egy path, egy kitöltés — így sehol nem sötétedik az átfedésektől.
+    ctx.beginPath();
+    ctx.arc(c.x,c.y,R+bandW/2,0,Math.PI*2);ctx.arc(c.x,c.y,R-bandW/2,0,Math.PI*2,true);
+    for(let i=0;i<total;i++){
+      const a=slotAngle(i),isBeat=i%subdiv===0;
+      const rr=isBeat?mr.beat*beatPulse(i/subdiv):mr.sub;
+      const mx=c.x+Math.cos(a)*R,my=c.y+Math.sin(a)*R;
+      if(isBeat){ // kifelé mutató csúcsú csepp a negyedek mögött
+        const d=rr*1.5,phi=Math.acos(rr/d);
+        ctx.moveTo(mx+Math.cos(a+phi)*rr,my+Math.sin(a+phi)*rr);
+        ctx.arc(mx,my,rr,a+phi,a-phi);            // a kör távolabbi íve
+        ctx.lineTo(mx+Math.cos(a)*d,my+Math.sin(a)*d);ctx.closePath();
+      }else{ctx.moveTo(mx+rr,my);ctx.arc(mx,my,rr,0,Math.PI*2)}
+    }
+    ctx.fillStyle=`rgba(255,255,255,${groupingsMode||gridMode?.20:.13})`;ctx.fill();
     // idő-impulzus: a sáv alapból sima, kizárólag a playhead mögötti csóva bordázott,
     // és csak lejátszás közben. A csóván belül sávonként halványodik a fény.
     if(playing){
@@ -446,42 +822,68 @@
         if(any)ctx.stroke();
       }
     }
-    ctx.lineWidth=2;ctx.strokeStyle='rgba(255,255,255,.15)';ctx.beginPath();ctx.arc(c.x,c.y,R+bandW*.60,0,Math.PI*2);ctx.stroke();
-    // rácspontok: a negyedek csepp alakúak, a csúcs sugárirányban kifelé mutat (így
-    // egyértelmű, hol az ütés, de a kör vonalát nem töri meg), az 1. ütés a legnagyobb.
-    // A háttérszínű körvonal emeli ki őket a sávból.
+    // A jelölőkből a háttérszínű körvonal vágja ki a gyűrűt a sáv sziluettjéből.
     ctx.lineWidth=3*s;ctx.strokeStyle=BG;
     for(let i=0;i<total;i++){
-      const a=base+i*(Math.PI*2/total),isBeat=i%subdiv===0,rr=i===0?mr.first:(isBeat?mr.beat:mr.sub);
-      ctx.save();ctx.translate(c.x+Math.cos(a)*R,c.y+Math.sin(a)*R);ctx.rotate(a);
-      // a gradienst visszaforgatjuk, hogy a fény minden jelölőn felülről jöjjön
-      const gx=Math.sin(a)*rr,gy=Math.cos(a)*rr,g=ctx.createLinearGradient(-gx,-gy,gx,gy);
-      g.addColorStop(0,`rgba(255,255,255,${groupingsMode?.52:.30})`);g.addColorStop(1,`rgba(255,255,255,${groupingsMode?.26:.12})`);ctx.fillStyle=g;
-      ctx.beginPath();
-      if(isBeat){const d=rr*1.55,phi=Math.acos(rr/d);ctx.arc(0,0,rr,phi,-phi);ctx.lineTo(d,0);ctx.closePath()}
-      else ctx.arc(0,0,rr,0,Math.PI*2);
-      ctx.fill();ctx.stroke();ctx.restore();
+      const a=slotAngle(i),rr=i%subdiv===0?mr.beat*beatPulse(i/subdiv):mr.sub;
+      ctx.beginPath();ctx.arc(c.x+Math.cos(a)*R,c.y+Math.sin(a)*R,rr,0,Math.PI*2);ctx.stroke();
+    }
+    // ütésszámok a gyűrűn kívül — ezek adják a negyedek fő vizuális horgonyát
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    for(let b=0;b<beats;b++){
+      const pb=beatPulse(b),a=slotAngle(b*Math.max(1,subdiv)),lr=R+60*s;
+      ctx.font=`italic 900 ${Math.round(19*s*pb)}px Montserrat, sans-serif`;
+      ctx.fillStyle=`rgba(255,255,255,${Math.min(1,.92+(pb-1)*1.2)})`;
+      ctx.fillText(String(b+1),c.x+Math.cos(a)*lr,c.y+Math.sin(a)*lr);
     }
     // --- csoportok: kapszula-körvonal + halvány belső kitöltés (a hangok alatt) ---
-    const capH=bandW*.60,anyOpen=openGroupId!==null;
+    // A kapszula legalább akkora, hogy a benne ülő hang beleférjen. Mivel a hangok
+    // sűrű rácson maguktól összemennek, a kapszula is velük szűkül — a zsúfoltság
+    // elleni javítás ott marad érvényben, ahol számít.
+    const capH=Math.max(bandW*.42,nr+5*s),anyOpen=openGroupId!==null;
+    // az éppen szóló csoport: amelyiknek a rácshelyei közé esik a playhead
+    const liveG=playing?groups.find(g=>groupHas(g,head)):null;
     ctx.lineCap='butt';ctx.textAlign='center';ctx.textBaseline='middle';
+    // az animált eltolás (g.vis) CSAK a rajzolást érinti; a logika már a végleges helyen van
+    const visMap=new Map();
+    for(const g of groups)if(g.vis)for(const n of membersOf(g))visMap.set(n,g.vis);
+    const noteVis=n=>visMap.get(n)||0;
     for(const g of groups){
-      const isOpen=g.id===openGroupId,full=groupCount(g)>=totalSlots();
-      const al=isOpen?.92:(anyOpen?.20:.62);
-      ctx.lineWidth=(isOpen?3.4:2.2)*s;ctx.strokeStyle=`rgba(11,11,11,${al})`;
-      ctx.fillStyle=isOpen?'rgba(255,255,255,.82)':`rgba(255,255,255,${anyOpen?.06:.20})`;
+      const isOpen=g.id===openGroupId,full=groupCount(g)>=totalSlots(),v=visOf(g);
+      // a kapszula végei a TORZÍTOTT rácspontokra ülnek, hogy a jelölőkkel egyben maradjanak
+      const gi0=gridIndex(g.a1),gLen=groupIndices(g).length;
+      const ga1=slotAngle(gi0)+v,ga2=slotAngle(gi0+gLen-1)+v;
+      // Az éppen soron lévő csoport egészben kiemelődik: erősebb körvonal és
+      // kitöltés, plusz egy hajszálnyi tágulás — nem csak a benne lévő hangok.
+      const live=g===liveG,hue=groupHue(groupCount(g));
+      const al=isOpen?.92:(anyOpen?.20:(live?.95:.58));
+      const ch=live?capH*1.06:capH;
+      ctx.lineWidth=(isOpen?2.4:(live?2.0:1.4))*s;ctx.strokeStyle=`hsla(${hue},52%,24%,${al})`;
+      ctx.fillStyle=isOpen?`hsla(${hue},62%,86%,.80)`:`hsla(${hue},58%,72%,${anyOpen?.08:(live?.44:.24)})`;
       if(full){ // körbeér: a kapszula bezárul önmagába, két koncentrikus gyűrűvé
-        ctx.beginPath();ctx.arc(c.x,c.y,R+capH,0,Math.PI*2);ctx.arc(c.x,c.y,R-capH,0,Math.PI*2,true);ctx.fill();
-        ctx.beginPath();ctx.arc(c.x,c.y,R+capH,0,Math.PI*2);ctx.stroke();
-        ctx.beginPath();ctx.arc(c.x,c.y,R-capH,0,Math.PI*2);ctx.stroke();
-      }else{capsulePath(c.x,c.y,R,capH,g.a1,g.a2);ctx.fill();ctx.stroke()}
-      const mid=full?base:(g.a1+g.a2)/2,lr=R+capH+15*s;   // a szám = hány rácspontot fed le
-      ctx.font=`900 ${Math.round(15*s)}px Montserrat, sans-serif`;ctx.fillStyle=`rgba(11,11,11,${al})`;
+        ctx.beginPath();ctx.arc(c.x,c.y,R+ch,0,Math.PI*2);ctx.arc(c.x,c.y,R-ch,0,Math.PI*2,true);ctx.fill();
+        ctx.beginPath();ctx.arc(c.x,c.y,R+ch,0,Math.PI*2);ctx.stroke();
+        ctx.beginPath();ctx.arc(c.x,c.y,R-ch,0,Math.PI*2);ctx.stroke();
+      }else{capsulePath(c.x,c.y,R,ch,ga1,ga2);ctx.fill();ctx.stroke()}
+      const mid=full?slotAngle(0):(ga1+ga2)/2,lr=R-ch-14*s;    // a kapszula vonalától mérve, hogy ne érjen hozzá
+      ctx.font=`900 ${Math.round(15*s*(live?1.06:1))}px Montserrat, sans-serif`;ctx.fillStyle=`hsla(${hue},60%,20%,${al})`;
       ctx.fillText(String(groupCount(g)),c.x+Math.cos(mid)*lr,c.y+Math.sin(mid)*lr);
+    }
+    // a rács eltolása: osztályonként egyszer, az 1. ütésbeli példánynál
+    if(gridMode||gridFeel.some(v=>Math.abs(v)>.005)){
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.font=`800 ${Math.round(12*s)}px Montserrat, sans-serif`;
+      const sd=Math.max(1,subdiv);
+      for(let cls=0;cls<sd;cls++){
+        const v=gridFeel[cls]||0;if(Math.abs(v)<.005)continue;
+        const pct=Math.round(v*100),ga=slotAngle(cls),lr=R+34*s;
+        ctx.fillStyle=`rgba(11,11,11,${gridMode?.85:.5})`;
+        ctx.fillText(`${pct>0?'+':''}${pct}%`,c.x+Math.cos(ga)*lr,c.y+Math.sin(ga)*lr);
+      }
     }
     if(paintSel&&paintSel.moved){ // kijelölés közbeni előnézet
       const from=paintSel.acc>=0?paintSel.a0:paintSel.a0+paintSel.acc,len=Math.min(Math.abs(paintSel.acc),Math.PI*2);
-      ctx.lineWidth=2.2*s;ctx.strokeStyle='rgba(11,11,11,.55)';ctx.fillStyle='rgba(255,255,255,.34)';
+      ctx.lineWidth=1.4*s;ctx.strokeStyle='rgba(11,11,11,.55)';ctx.fillStyle='rgba(255,255,255,.34)';
       capsulePath(c.x,c.y,R,capH,from,from+len);ctx.fill();ctx.stroke();
     }
     // off-grid eltérések. 100% = egy rácslépés, a viszonyítás a hang legközelebbi
@@ -489,28 +891,47 @@
     // elengedés után halványan ott is marad.
     const devs=[];
     for(let i=0;i<notes.length;i++){
-      const a=getNoteAngle(notes[i]),ga=nearestGridAngle(a),d=shortestAngleDiff(a,ga),pct=Math.round(d/gridStepAngle()*100);
+      const nv=noteVis(notes[i]),a=getNoteAngle(notes[i])+nv,ga=rootOf(notes[i])+nv,d=shortestAngleDiff(a,ga),pct=Math.round(d/gridStepAngle()*100);
       if(pct!==0)devs.push({a,ga,pct,live:!!draggingNote&&draggingNote.index===i&&!tapCandidate});
     }
-    ctx.lineCap='round';ctx.lineWidth=bandW*.62;
+    ctx.lineCap='round';ctx.lineWidth=bandW*.34;
     for(const dv of devs){ctx.strokeStyle=`rgba(11,11,11,${dv.live?.22:.13})`;drawArcShortest(dv.ga,dv.a,c.x,c.y,R)}
-    for(const n of notes){const a=getNoteAngle(n),x=c.x+Math.cos(a)*R,y=c.y+Math.sin(a)*R;
+    for(const n of notes){const a=getNoteAngle(n)+noteVis(n),x=c.x+Math.cos(a)*R,y=c.y+Math.sin(a)*R;
       // csoportosító módban, illetve nyitott csoport mellett a többi hang halványul
-      const og=anyOpen?groupById(openGroupId):null,dim=groupingsMode||(anyOpen&&!(og&&groupHas(og,a)));
+      const og=anyOpen?groupById(openGroupId):null,dim=groupingsMode||gridMode||(anyOpen&&!(og&&groupHas(og,a)));
+      // megszólaláskor rövid, lecsengő tágulás
+      const t=(frameNow-(n.hit??-1e9))/PULSE_MS;
+      const pulse=t>=0&&t<1?1+(n.accent?.40:.30)*Math.pow(1-t,2):1;
       ctx.beginPath();ctx.fillStyle=n.accent?`rgba(220,40,40,${dim?.34:.98})`:`rgba(0,0,0,${dim?.32:.96})`;
-      ctx.arc(x,y,nr,0,Math.PI*2);ctx.fill()}
+      ctx.arc(x,y,nr*pulse,0,Math.PI*2);ctx.fill()}
+    // Minden negyed cseppje fehér körvonalat kap, és ezt a HANGOK UTÁN rajzoljuk:
+    // így a jelölő tele pakolt gyűrűn is kivehető marad a ráültetett hang körül.
+    ctx.lineWidth=Math.max(1,1.6*s);
+    for(let b=0;b<beats;b++){
+      const pb=beatPulse(b),rr=mr.beat*pb,d=rr*1.5,ab=slotAngle(b*Math.max(1,subdiv));
+      const phi=Math.acos(rr/d),mx=c.x+Math.cos(ab)*R,my=c.y+Math.sin(ab)*R;
+      ctx.strokeStyle=`rgba(255,255,255,${Math.min(1,.62+(pb-1)*1.6)})`;
+      ctx.beginPath();ctx.moveTo(mx+Math.cos(ab+phi)*rr,my+Math.sin(ab+phi)*rr);
+      ctx.arc(mx,my,rr,ab+phi,ab-phi);ctx.lineTo(mx+Math.cos(ab)*d,my+Math.sin(ab)*d);
+      ctx.closePath();ctx.stroke();
+    }
     // az eltérés-buborékok a hangok fölé kerülnek
-    ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`800 ${Math.round(13*s)}px Montserrat, sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`800 ${Math.round(11*s)}px Montserrat, sans-serif`;
     for(const dv of devs){
-      const x=c.x+Math.cos(dv.a)*R,y=c.y+Math.sin(dv.a)*R,br=Math.max(nr,30*s);
+      const x=c.x+Math.cos(dv.a)*R,y=c.y+Math.sin(dv.a)*R,br=Math.max(nr*.78,18*s);
       ctx.fillStyle=`rgba(11,11,11,${dv.live?.88:.34})`;ctx.beginPath();ctx.arc(x,y,br,0,Math.PI*2);ctx.fill();
       ctx.fillStyle=`rgba(255,255,255,${dv.live?.96:.62})`;ctx.fillText(`${dv.pct>0?'+':''}${dv.pct}%`,x,y);
     }
     ctx.fillStyle='rgba(255,255,255,.06)';ctx.beginPath();ctx.arc(c.x,c.y,innerR*.42,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='rgba(255,255,255,.97)';const tri=innerR*.18;if(!playing){ctx.beginPath();ctx.moveTo(c.x-tri*.5,c.y-tri*.75);ctx.lineTo(c.x-tri*.5,c.y+tri*.75);ctx.lineTo(c.x+tri*.95,c.y);ctx.closePath();ctx.fill()}else{const w=tri*.45,h=tri*1.5,gap=tri*.35;roundRectPath(ctx,c.x-gap/2-w,c.y-h/2,w,h,8);ctx.fill();roundRectPath(ctx,c.x+gap/2,c.y-h/2,w,h,8);ctx.fill()}
     ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`900 ${Math.round(innerR*.22)}px Montserrat, sans-serif`;ctx.fillStyle='rgba(255,255,255,.40)';ctx.fillText(String(bpm),c.x,c.y+innerR*.35);ctx.font=`500 ${Math.round(innerR*.07)}px Montserrat, sans-serif`;ctx.fillStyle='rgba(255,255,255,.45)';ctx.fillText('BPM',c.x,c.y+innerR*.48);ctx.lineWidth=2;ctx.strokeStyle='rgba(255,255,255,.42)';ctx.beginPath();ctx.moveTo(c.x-innerR*.11,c.y+innerR*.525);ctx.lineTo(c.x+innerR*.11,c.y+innerR*.525);ctx.stroke();
+    ctx.font=`600 ${Math.round(innerR*.062)}px Montserrat, sans-serif`;
+    ctx.fillStyle=`rgba(255,255,255,${currentName&&!dirty?.34:.55})`;
+    ctx.fillText(patternLabel(),c.x,c.y+innerR*.72);
   }
-  renderAllUI();let lastT=performance.now();function loop(now){const dt=(now-lastT)/1000;lastT=now;stepPlayback(dt,now);draw();requestAnimationFrame(loop)}requestAnimationFrame(t=>{lastT=t;loop(t)});
+  bindWheel(tsWheel,changeTs,beginTs,endTs,()=>{beatClickOn=!beatClickOn;renderButtons()});
+  bindWheel(subWheel,changeSub,beginSub,endSub,()=>{subClickOn=!subClickOn;renderButtons()});
+  renderAllUI();let lastT=performance.now();function loop(now){const dt=(now-lastT)/1000;lastT=now;frameNow=now;stepPlayback(dt,now);stepAnims(now);draw();requestAnimationFrame(loop)}requestAnimationFrame(t=>{lastT=t;loop(t)});
 })();
 </script>
 </body>
