@@ -70,16 +70,21 @@
       color:rgba(var(--white),.78);font-family:inherit;font-size:var(--segFs,19px);font-weight:700;
       letter-spacing:.06em;cursor:pointer;pointer-events:auto;z-index:8;text-align:center}
     .desktop .deskBtn{display:flex}
-    .desktop #libraryBtn{left:64%;width:min(340px,24vw);height:64px;
+    /* A mentés és a könyvtár két külön hívószó, egymás alatt; a mentés van felül,
+       mert az a gyakoribb mozdulat, és az állapotjelző is arra hív. */
+    .desktop #saveBtn{left:64%;width:min(340px,24vw);height:64px;
       top:calc(22vh + var(--pickerH,285px) + 68px + 102px)}
+    .desktop #libraryBtn{left:64%;width:min(340px,24vw);height:64px;
+      top:calc(22vh + var(--pickerH,285px) + 68px + 178px)}
     .desktop #deleteBtn{left:4vw;bottom:6vh;top:auto;width:132px;height:70px;font-size:15px}
     .desktop #menuBtn{position:fixed;top:4vh;right:4vw;width:92px;height:60px;border-radius:16px;
       border:1px solid rgba(var(--white),.7);flex:none;z-index:20}
     .desktop #menuBtn .hamb{gap:8px}
     .ddItem.muted{opacity:.45;pointer-events:none;display:none}
     .desktop .ddItem.muted{display:block}
-    .desktop #libraryItem,.desktop #clearPatternItem,.desktop #beatClickItem{display:none}
-    .desktop #gridFeelItem{display:block}
+    /* desktopon a mentésnek, a könyvtárnak és a törlésnek saját gombja van a panelen,
+       a menüben csak az marad, aminek nincs — a Sounds és a személyre szabás */
+    .desktop #savePatternItem,.desktop #libraryItem,.desktop #clearPatternItem{display:none}
     .desktop .bottomDropdown{position:fixed;top:calc(4vh + 70px);right:4vw;left:auto;bottom:auto;
       transform:none;width:280px}
     .ddItem{padding:16px 18px;color:rgba(255,255,255,.92);font-size:15px;font-weight:700;cursor:pointer}
@@ -98,8 +103,40 @@
     .modalActions{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .mBtn{height:44px;border-radius:14px;display:grid;place-items:center;cursor:pointer;font-weight:900;font-size:14px;border:1px solid rgba(255,255,255,.10)}
     .mBtn.primary{background:rgba(255,255,255,.90);color:rgba(0,0,0,.82)} .mBtn.ghost{background:rgba(255,255,255,.08);color:rgba(255,255,255,.85)} .mBtn.danger{background:rgba(220,40,40,.90);color:#fff}
+    /* TAP: nagyobb célfelület, mert ütni fogod, nem kattintani. A találat rövid
+       felvillanás — a tempót érezni kell, nem elolvasni. */
+    .tapBtn{height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:3px;font-size:17px;letter-spacing:.14em;transition:background .09s,transform .09s}
+    .tapBtn.hit{background:rgba(255,255,255,.32);transform:scale(.985)}
+    .tapHint{font-size:11px;font-weight:600;letter-spacing:.03em;color:rgba(255,255,255,.50)}
     .libList{display:flex;flex-direction:column;gap:10px} .libItem{border-radius:14px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.06);padding:12px;display:flex;align-items:center;justify-content:space-between;gap:10px} .libName{color:rgba(255,255,255,.92);font-weight:800;font-size:15px;line-height:1.1} .libMeta{margin-top:4px;color:rgba(255,255,255,.55);font-size:12px} .libBtns{display:flex;gap:8px;flex-shrink:0} .mini{height:36px;padding:0 10px;border-radius:12px;font-size:12px} .empty{color:rgba(255,255,255,.65);font-size:14px;padding:8px 2px}
-    
+    /* Sounds panel: szólamonként egy sor — fent a név és (ahol van) a ki/be kapcsoló,
+       alatta a hangkészlet. A kikapcsolt szólam hangjai halványak, de választhatók:
+       előre be lehet állítani, mi szóljon, ha majd bekapcsolod. */
+    #soundBody{max-height:70svh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+    .sndRow{padding:13px 0}
+    .sndRow + .sndRow{border-top:1px solid rgba(255,255,255,.10)}
+    .sndHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .sndName{font-size:13px;font-weight:800;letter-spacing:.07em;color:rgba(255,255,255,.90);text-transform:uppercase;line-height:1.2}
+    .sndHint{margin-top:3px;font-size:11px;font-weight:500;color:rgba(255,255,255,.45)}
+    .sndToggle{position:relative;flex:none;width:54px;height:30px;border-radius:99px;cursor:pointer;
+      background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);transition:background .16s}
+    .sndToggle::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;
+      background:rgba(255,255,255,.50);transition:transform .16s,background .16s}
+    .sndToggle.on{background:rgba(255,255,255,.28)}
+    .sndToggle.on::after{transform:translateX(24px);background:#fff}
+    /* egyenlő oszlopok, hogy a hangok telefonon se tördelődjenek két sorba: a panel
+       így gördítés nélkül elfér — az oszlopszámot a hangkészlet mérete adja */
+    .voices{display:grid;gap:8px}
+    .voice{height:34px;padding:0 4px;display:flex;align-items:center;justify-content:center;border-radius:12px;cursor:pointer;
+      border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);
+      color:rgba(255,255,255,.72);font-size:12px;font-weight:700;letter-spacing:.03em;
+      white-space:nowrap;overflow:hidden}
+    .voice.sel{background:rgba(255,255,255,.90);color:rgba(0,0,0,.82);border-color:transparent}
+    .sndRow.off .voices{opacity:.40}
+    /* keskeny készüléken a hangnevek különben levágódnának az oszlopukban */
+    @media (max-width:380px){.voice{font-size:11px;letter-spacing:0;padding:0 2px}}
+
   </style>
 </head>
 <body>
@@ -110,7 +147,8 @@
     <div class="divider"></div>
     <div class="pickerBox subPicker" id="subPicker"><div class="pickerTitle">Subdivision</div><div class="wheel subWheel" id="subWheel"></div></div>
   </div>
-  <div class="bottomDropdown" id="dropdown"><div class="ddItem" id="libraryItem">Library</div><div class="ddItem" id="beatClickItem">Beat Click</div><div class="ddItem" id="clearPatternItem">Clear</div><div class="ddItem" id="gridFeelItem">Grid Feel</div><div class="ddItem muted" id="ddSoon">Personalization — coming soon</div></div>
+  <div class="bottomDropdown" id="dropdown"><div class="ddItem" id="savePatternItem">Save Pattern</div><div class="ddItem" id="libraryItem">Library</div><div class="ddItem" id="soundsItem">Sounds</div><div class="ddItem" id="clearPatternItem">Clear</div><div class="ddItem muted" id="ddSoon">Personalization — coming soon</div></div>
+  <button class="deskBtn" id="saveBtn">SAVE<br>PATTERN</button>
   <button class="deskBtn" id="libraryBtn">LIBRARY</button>
   <button class="deskBtn" id="deleteBtn">DELETE<br>NOTES</button>
   <div class="bottomBar" id="bottomBar">
@@ -119,48 +157,79 @@
     <button class="seg" id="groupBtn">GROUP<br>NOTES</button>
   </div>
   <div class="modalOverlay" id="saveModal"><div class="modal"><div class="modalHeader"><div class="modalTitle">Save Pattern</div><div class="modalClose" id="saveClose">✕</div></div><div class="modalBody"><div class="fieldLabel">Name</div><input id="saveName" type="text" maxlength="40" placeholder="e.g. Verse A / 7-3 clave / ..." /><div class="modalActions" id="saveUpdateRow" style="grid-template-columns:1fr;display:none"><div class="mBtn primary" id="saveUpdate">Update</div></div><div class="modalActions"><div class="mBtn ghost" id="saveCancel">Cancel</div><div class="mBtn primary" id="saveConfirm">Save as new</div></div></div></div></div>
-  <div class="modalOverlay" id="bpmModal"><div class="modal"><div class="modalHeader"><div class="modalTitle">Tempo</div><div class="modalClose" id="bpmClose">✕</div></div><div class="modalBody"><div class="fieldLabel">BPM (30–240)</div><input id="bpmInput" type="text" inputmode="numeric" maxlength="3" placeholder="80" /><div class="modalActions"><div class="mBtn ghost" id="bpmCancel">Cancel</div><div class="mBtn primary" id="bpmConfirm">Set</div></div></div></div></div>
-  <div class="modalOverlay" id="libModal"><div class="modal"><div class="modalHeader"><div class="modalTitle">Library</div><div class="modalClose" id="libClose">✕</div></div><div class="modalBody"><div class="libList" id="libList"></div><div class="modalActions" style="grid-template-columns:1fr"><div class="mBtn primary" id="libSaveBtn">＋ Save current pattern</div></div><div class="modalActions" style="grid-template-columns:1fr"><div class="mBtn ghost" id="libCloseBtn">Close</div></div></div></div></div>
+  <div class="modalOverlay" id="bpmModal"><div class="modal"><div class="modalHeader"><div class="modalTitle">Tempo</div><div class="modalClose" id="bpmClose">✕</div></div><div class="modalBody"><div class="fieldLabel">BPM (30–240)</div><input id="bpmInput" type="text" inputmode="numeric" maxlength="3" placeholder="80" /><div class="modalActions" style="grid-template-columns:1fr"><div class="mBtn ghost tapBtn" id="bpmTap">TAP<span class="tapHint" id="bpmTapHint">tap the beat</span></div></div><div class="modalActions"><div class="mBtn ghost" id="bpmCancel">Cancel</div><div class="mBtn primary" id="bpmConfirm">Set</div></div></div></div></div>
+  <div class="modalOverlay" id="libModal"><div class="modal"><div class="modalHeader"><div class="modalTitle">Library</div><div class="modalClose" id="libClose">✕</div></div><div class="modalBody"><div class="libList" id="libList"></div><div class="modalActions" style="grid-template-columns:1fr"><div class="mBtn ghost" id="libCloseBtn">Close</div></div></div></div></div>
+  <div class="modalOverlay" id="soundModal"><div class="modal"><div class="modalHeader"><div class="modalTitle">Sounds</div><div class="modalClose" id="soundClose">✕</div></div><div class="modalBody" id="soundBody"></div></div></div>
 </div>
 <script>
 (()=>{
   const phone=document.getElementById('phone'), canvas=document.getElementById('c'), ctx=canvas.getContext('2d',{alpha:true});
-  document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+  // az oldal maga nem gördül, de a modális tartalom igen (a Sounds panel magas lehet)
+  document.addEventListener('touchmove',e=>{
+    if(e.target&&e.target.closest&&e.target.closest('.modalBody'))return;
+    e.preventDefault();
+  },{passive:false});
   const tsWheel=document.getElementById('tsWheel'), subWheel=document.getElementById('subWheel');
   const gridSnapBtn=document.getElementById('gridSnapBtn'), groupBtn=document.getElementById('groupBtn'), menuBtn=document.getElementById('menuBtn'), dropdown=document.getElementById('dropdown');
-  const libraryItem=document.getElementById('libraryItem'), beatClickItem=document.getElementById('beatClickItem'), clearPatternItem=document.getElementById('clearPatternItem');
+  const savePatternItem=document.getElementById('savePatternItem'), libraryItem=document.getElementById('libraryItem'), soundsItem=document.getElementById('soundsItem'), clearPatternItem=document.getElementById('clearPatternItem');
+  const soundModal=document.getElementById('soundModal'), soundClose=document.getElementById('soundClose'), soundBody=document.getElementById('soundBody');
   const saveModal=document.getElementById('saveModal'), saveClose=document.getElementById('saveClose'), saveCancel=document.getElementById('saveCancel'), saveConfirm=document.getElementById('saveConfirm'), saveName=document.getElementById('saveName');
   const libModal=document.getElementById('libModal'), libClose=document.getElementById('libClose'), libCloseBtn=document.getElementById('libCloseBtn'), libList=document.getElementById('libList');
   const bpmModal=document.getElementById('bpmModal'), bpmClose=document.getElementById('bpmClose'), bpmCancel=document.getElementById('bpmCancel'), bpmConfirm=document.getElementById('bpmConfirm'), bpmInput=document.getElementById('bpmInput');
   const icons={"1": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iNDMiIHZpZXdCb3g9IjAgMCAxNCA0MyIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggb3BhY2l0eT0iMC45MSIgZD0iTTEwLjg0MjcgMzEuNzI2NkMxMS42Njk3IDMyLjI1NjEgMTIuMzIyMiAzMi45OTUzIDEyLjY5NzIgMzMuOTE1QzEzLjgzNjMgMzYuNzA5MiAxMS45OTIzIDQwLjEwMjcgOC41NzkwNiA0MS40OTQxQzUuMTY1ODYgNDIuODg1NiAxLjQ3NTk4IDQxLjc0ODMgMC4zMzY4NzMgMzguOTU0MUMtMC44MDIxOTIgMzYuMTYgMS4wNDA5NiAzMi43Njc1IDQuNDU0MDYgMzEuMzc2QzUuOTQyMzggMzAuNzY5MiA3LjQ4MzUxIDMwLjY0MjMgOC44NDI3MyAzMC45MjQ4VjBIMTAuODQyN1YzMS43MjY2WiIgZmlsbD0iIzBCMEIwQiIvPgo8L3N2Zz4K", "2": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDUiIGhlaWdodD0iNDIiIHZpZXdCb3g9IjAgMCA0NSA0MiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwLjU2MDUgMzAuNjQwM1YxSDM5LjE3ODhWMzAuNjQwMyIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTEyLjQzMSAzNy4zNzQ3QzEwLjIwODQgMzkuNjgyOCA2LjUyNDgxIDQwLjI2ODggNC4yMDM0NCAzOC42ODM2QzEuODgyMDcgMzcuMDk4NCAxLjgwMTk3IDMzLjk0MjMgNC4wMjQ1MyAzMS42MzQyQzYuMjQ3MDkgMjkuMzI2MSA5LjkzMDY3IDI4Ljc0MDEgMTIuMjUyIDMwLjMyNTNDMTQuNTczNCAzMS45MTA1IDE0LjY1MzUgMzUuMDY2NiAxMi40MzEgMzcuMzc0N1oiIGZpbGw9IiMwQjBCMEIiLz4KPGVsbGlwc2UgY3g9IjUuMDg5NzMiIGN5PSI1LjgwMTczIiByeD0iNS4wODk3MyIgcnk9IjUuODAxNzMiIHRyYW5zZm9ybT0ibWF0cml4KDAuODI1ODIzIDAuNTYzOTI5IC0wLjY5MzYzOCAwLjcyMDMyNCAzNi4wNDg4IDI3LjQ1NTEpIiBmaWxsPSIjMEIwQjBCIi8+Cjwvc3ZnPgo=", "3": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTIiIHZpZXdCb3g9IjAgMCA1MCA1MiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTkgNDNWMTZINDZWNDMiIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPHBhdGggZD0iTTI3LjAwMiAxNkwyNyA0MyIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjEuNSIvPgo8ZWxsaXBzZSBjeD0iMy45MTg3MyIgY3k9IjQuNzA0ODQiIHJ4PSIzLjkxODczIiByeT0iNC43MDQ4NCIgdHJhbnNmb3JtPSJtYXRyaXgoMC44MjU4MjMgMC41NjM5MjkgLTAuNjkzNjM4IDAuNzIwMzI0IDQzLjUyNjQgNDApIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjkxODczIiBjeT0iNC43MDQ4NCIgcng9IjMuOTE4NzMiIHJ5PSI0LjcwNDg0IiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgMjQuNTI2NCA0MCkiIGZpbGw9IiMwQjBCMEIiLz4KPGVsbGlwc2UgY3g9IjMuOTE4NzMiIGN5PSI0LjcwNDg0IiByeD0iMy45MTg3MyIgcnk9IjQuNzA0ODQiIHRyYW5zZm9ybT0ibWF0cml4KDAuODI1ODIzIDAuNTYzOTI5IC0wLjY5MzYzOCAwLjcyMDMyNCA2LjUyNzM0IDQwKSIgZmlsbD0iIzBCMEIwQiIvPgo8cGF0aCBkPSJNMjYuNzQ2MyAxMi4wNzJDMjYuMTM4MyAxMi4wNzIgMjUuNTYyMyAxMS45NzYgMjUuMDE4MyAxMS43ODRDMjQuNDgyMyAxMS41ODQgMjQuMDUwMyAxMS4zMiAyMy43MjIzIDEwLjk5MkwyNC4xNDIzIDEwLjMwOEMyNC40MTQzIDEwLjU4OCAyNC43NzgzIDEwLjgyIDI1LjIzNDMgMTEuMDA0QzI1LjY5ODMgMTEuMTg4IDI2LjIwMjMgMTEuMjggMjYuNzQ2MyAxMS4yOEMyNy40NDIzIDExLjI4IDI3Ljk3NDMgMTEuMTI4IDI4LjM0MjMgMTAuODI0QzI4LjcxODMgMTAuNTIgMjguOTA2MyAxMC4xMTIgMjguOTA2MyA5LjZDMjguOTA2MyA5LjA4OCAyOC43MjIzIDguNjggMjguMzU0MyA4LjM3NkMyNy45OTQzIDguMDcyIDI3LjQyMjMgNy45MiAyNi42MzgzIDcuOTJMMjYuMDM4MyA3LjkyTDI2LjAzODMgNy4yODRMMjguNjMwMyA0LjAzMkwyOC43NTAzIDQuMzY4TDI0LjA3MDMgNC4zNjhMMjQuMDcwMyAzLjZMMjkuNDcwMyAzLjZMMjkuNDcwMyA0LjIxMkwyNi44NzgzIDcuNDY0TDI2LjQ1ODMgNy4xODhMMjYuNzgyMyA3LjE4OEMyNy43OTAzIDcuMTg4IDI4LjU0MjMgNy40MTIgMjkuMDM4MyA3Ljg2QzI5LjU0MjMgOC4zMDggMjkuNzk0MyA4Ljg4NCAyOS43OTQzIDkuNTg4QzI5Ljc5NDMgMTAuMDYgMjkuNjgyMyAxMC40ODQgMjkuNDU4MyAxMC44NkMyOS4yMzQzIDExLjIzNiAyOC44OTQzIDExLjUzMiAyOC40MzgzIDExLjc0OEMyNy45OTAzIDExLjk2NCAyNy40MjYzIDEyLjA3MiAyNi43NDYzIDEyLjA3MloiIGZpbGw9IiMwQjBCMEIiLz4KPC9zdmc+Cg==", "4": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTMiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCA1MyAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTggMjMuMTMzVjAuNUg0OS40OTM4VjIzLjEzMyIgc3Ryb2tlPSIjMEIwQjBCIi8+CjxwYXRoIGQ9Ik0yMS41OTU3IDAuNVYyMy4xMzMiIHN0cm9rZT0iIzBCMEIwQiIvPgo8cGF0aCBkPSJNMzUgMC41VjIzLjEzMyIgc3Ryb2tlPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgNDcuMzA2NiAyMC41KSIgZmlsbD0iIzBCMEIwQiIvPgo8ZWxsaXBzZSBjeD0iMy4wNTY4NiIgY3k9IjMuODI1MTMiIHJ4PSIzLjA1Njg2IiByeT0iMy44MjUxMyIgdHJhbnNmb3JtPSJtYXRyaXgoMC44MjU4MjMgMC41NjM5MjkgLTAuNjkzNjM4IDAuNzIwMzI0IDM0LjMwNjYgMjAuNSkiIGZpbGw9IiMwQjBCMEIiLz4KPGVsbGlwc2UgY3g9IjMuMDU2ODYiIGN5PSIzLjgyNTEzIiByeD0iMy4wNTY4NiIgcnk9IjMuODI1MTMiIHRyYW5zZm9ybT0ibWF0cml4KDAuODI1ODIzIDAuNTYzOTI5IC0wLjY5MzYzOCAwLjcyMDMyNCAxOS4zMDY2IDIwLjUpIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgNS4zMDY2NCAyMC41KSIgZmlsbD0iIzBCMEIwQiIvPgo8cGF0aCBkPSJNOCA2LjVINDkuNSIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTggMS41SDQ5LjUiIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIyIi8+Cjwvc3ZnPgo=", "5": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjgiIGhlaWdodD0iNDYiIHZpZXdCb3g9IjAgMCA2OCA0NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTggMzkuOTk5VjE2Ljk5OUg2M1YzOS45OTkiIHN0cm9rZT0iIzBCMEIwQiIvPgo8cGF0aCBkPSJNMjEuNTk1NyAxNi45OTlWMzkuNjMyIiBzdHJva2U9IiMwQjBCMEIiLz4KPHBhdGggZD0iTTM1IDE2Ljk5OVYzOS42MzIiIHN0cm9rZT0iIzBCMEIwQiIvPgo8cGF0aCBkPSJNNDkgMTYuOTk5VjM4Ljk5OSIgc3Ryb2tlPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgNDcuMzA2NiAzNi45OTkpIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgNjIuMzA2NiAzNi45OTkpIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgMzQuMzA2NiAzNi45OTkpIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgMTkuMzA2NiAzNi45OTkpIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgNS4zMDY2NCAzNi45OTkpIiBmaWxsPSIjMEIwQjBCIi8+CjxwYXRoIGQ9Ik04IDIyLjk5OUg2MyIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTggMTcuOTk5SDYzIiBzdHJva2U9IiMwQjBCMEIiIHN0cm9rZS13aWR0aD0iMiIvPgo8cGF0aCBkPSJNMzUuNzUzNSAxMi4wNzJDMzUuMTUzNSAxMi4wNzIgMzQuNTgxNSAxMS45NzYgMzQuMDM3NSAxMS43ODRDMzMuNDkzNSAxMS41ODQgMzMuMDYxNSAxMS4zMiAzMi43NDE1IDEwLjk5MkwzMy4xNjE1IDEwLjMwOEMzMy40MjU1IDEwLjU4OCAzMy43ODU1IDEwLjgyIDM0LjI0MTUgMTEuMDA0QzM0LjcwNTUgMTEuMTg4IDM1LjIwNTUgMTEuMjggMzUuNzQxNSAxMS4yOEMzNi40NTM1IDExLjI4IDM2Ljk5MzUgMTEuMTI0IDM3LjM2MTUgMTAuODEyQzM3LjczNzUgMTAuNDkyIDM3LjkyNTUgMTAuMDc2IDM3LjkyNTUgOS41NjRDMzcuOTI1NSA5LjIwNCAzNy44Mzc1IDguODk2IDM3LjY2MTUgOC42NEMzNy40OTM1IDguMzc2IDM3LjIwNTUgOC4xNzIgMzYuNzk3NSA4LjAyOEMzNi4zODk1IDcuODg0IDM1LjgyOTUgNy44MTIgMzUuMTE3NSA3LjgxMkwzMy4zMjk1IDcuODEyTDMzLjc2MTUgMy42TDM4LjM1NzUgMy42TDM4LjM1NzUgNC4zNjhMMzQuMTA5NSA0LjM2OEwzNC41NTM1IDMuOTQ4TDM0LjE4MTUgNy40NzZMMzMuNzM3NSA3LjA0NEwzNS4zMDk1IDcuMDQ0QzM2LjE1NzUgNy4wNDQgMzYuODM3NSA3LjE0OCAzNy4zNDk1IDcuMzU2QzM3Ljg2MTUgNy41NjQgMzguMjI5NSA3Ljg1NiAzOC40NTM1IDguMjMyQzM4LjY4NTUgOC42IDM4LjgwMTUgOS4wMzIgMzguODAxNSA5LjUyOEMzOC44MDE1IDEwIDM4LjY4OTUgMTAuNDMyIDM4LjQ2NTUgMTAuODI0QzM4LjI0MTUgMTEuMjA4IDM3LjkwNTUgMTEuNTEyIDM3LjQ1NzUgMTEuNzM2QzM3LjAwOTUgMTEuOTYgMzYuNDQxNSAxMi4wNzIgMzUuNzUzNSAxMi4wNzJaIiBmaWxsPSIjMEIwQjBCIi8+Cjwvc3ZnPgo=", "6": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzMiIGhlaWdodD0iNTQiIHZpZXdCb3g9IjAgMCA3MyA1NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTM5LjA4MTYgMTIuMDcyQzM4LjMzNzYgMTIuMDcyIDM3LjcwOTYgMTEuOTA4IDM3LjE5NzYgMTEuNThDMzYuNjg1NiAxMS4yNDQgMzYuMjk3NiAxMC43NjQgMzYuMDMzNiAxMC4xNEMzNS43Njk2IDkuNTA4IDM1LjYzNzYgOC43NTIgMzUuNjM3NiA3Ljg3MkMzNS42Mzc2IDYuOTIgMzUuNzk3NiA2LjEyNCAzNi4xMTc2IDUuNDg0QzM2LjQ0NTYgNC44MzYgMzYuODk3NiA0LjM0OCAzNy40NzM2IDQuMDJDMzguMDQ5NiAzLjY5MiAzOC43MTc2IDMuNTI4IDM5LjQ3NzYgMy41MjhDMzkuODUzNiAzLjUyOCA0MC4yMTM2IDMuNTY0IDQwLjU1NzYgMy42MzZDNDAuOTAxNiAzLjcwOCA0MS4yMDU2IDMuODI0IDQxLjQ2OTYgMy45ODRMNDEuMTIxNiA0LjY4QzQwLjkwNTYgNC41MzYgNDAuNjU3NiA0LjQzNiA0MC4zNzc2IDQuMzhDNDAuMDk3NiA0LjMxNiAzOS44MDE2IDQuMjg0IDM5LjQ4OTYgNC4yODRDMzguNTg1NiA0LjI4NCAzNy44NjE2IDQuNTcyIDM3LjMxNzYgNS4xNDhDMzYuNzgxNiA1LjcyNCAzNi41MTM2IDYuNTg0IDM2LjUxMzYgNy43MjhDMzYuNTEzNiA3LjkwNCAzNi41MjE2IDguMTI0IDM2LjUzNzYgOC4zODhDMzYuNTYxNiA4LjY0NCAzNi42MDk2IDguOSAzNi42ODE2IDkuMTU2TDM2LjM4MTYgOC45MjhDMzYuNDY5NiA4LjUxMiAzNi42NDE2IDguMTYgMzYuODk3NiA3Ljg3MkMzNy4xNTM2IDcuNTc2IDM3LjQ3MzYgNy4zNTIgMzcuODU3NiA3LjJDMzguMjQxNiA3LjA0OCAzOC42NjE2IDYuOTcyIDM5LjExNzYgNi45NzJDMzkuNjc3NiA2Ljk3MiA0MC4xNjk2IDcuMDc2IDQwLjU5MzYgNy4yODRDNDEuMDE3NiA3LjQ5MiA0MS4zNDk2IDcuNzg0IDQxLjU4OTYgOC4xNkM0MS44Mjk2IDguNTM2IDQxLjk0OTYgOC45OCA0MS45NDk2IDkuNDkyQzQxLjk0OTYgMTAuMDEyIDQxLjgyNTYgMTAuNDY4IDQxLjU3NzYgMTAuODZDNDEuMzI5NiAxMS4yNDQgNDAuOTg1NiAxMS41NDQgNDAuNTQ1NiAxMS43NkM0MC4xMTM2IDExLjk2OCAzOS42MjU2IDEyLjA3MiAzOS4wODE2IDEyLjA3MlpNMzkuMDQ1NiAxMS4zNEMzOS40NDU2IDExLjM0IDM5Ljc5NzYgMTEuMjY4IDQwLjEwMTYgMTEuMTI0QzQwLjQxMzYgMTAuOTcyIDQwLjY1NzYgMTAuNzYgNDAuODMzNiAxMC40ODhDNDEuMDA5NiAxMC4yMDggNDEuMDk3NiA5Ljg4NCA0MS4wOTc2IDkuNTE2QzQxLjA5NzYgOC45NjQgNDAuOTA1NiA4LjUyNCA0MC41MjE2IDguMTk2QzQwLjE0NTYgNy44NjggMzkuNjMzNiA3LjcwNCAzOC45ODU2IDcuNzA0QzM4LjU1MzYgNy43MDQgMzguMTc3NiA3Ljc4NCAzNy44NTc2IDcuOTQ0QzM3LjUzNzYgOC4xMDQgMzcuMjg1NiA4LjMyNCAzNy4xMDE2IDguNjA0QzM2LjkxNzYgOC44NzYgMzYuODI1NiA5LjE4OCAzNi44MjU2IDkuNTRDMzYuODI1NiA5Ljg0NCAzNi45MDk2IDEwLjEzNiAzNy4wNzc2IDEwLjQxNkMzNy4yNDU2IDEwLjY4OCAzNy40OTM2IDEwLjkxMiAzNy44MjE2IDExLjA4OEMzOC4xNTc2IDExLjI1NiAzOC41NjU2IDExLjM0IDM5LjA0NTYgMTEuMzRaIiBmaWxsPSIjMEIwQjBCIi8+CjxwYXRoIGQ9Ik03LjI1MDk4IDQ1LjkyMVYxOC4xMjdINzAuMDg5N1Y0NS45MjEiIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIwLjUiLz4KPHBhdGggZD0iTTE5LjYyNiAxOC4xMjdWNDUuNDc3NSIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjAuNSIvPgo8cGF0aCBkPSJNMzIuMzgwOSAxOC4xMjdWNDUuNDc3NSIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjAuNSIvPgo8cGF0aCBkPSJNNDUuMTM3NyAxOC4xMjdWNDUuNDc3NSIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjAuNSIvPgo8cGF0aCBkPSJNNTcuODk0NSAxOC4xMjdWNDUuNDc3NSIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjAuNSIvPgo8ZWxsaXBzZSBjeD0iMy4yMzY1OSIgY3k9IjQuMjI2NjciIHJ4PSIzLjIzNjU5IiByeT0iNC4yMjY2NyIgdHJhbnNmb3JtPSJtYXRyaXgoMC43NjUzMzUgMC42NDM2MzIgLTAuNjE1OTY3IDAuNzg3NzcyIDQyLjY2ODkgNDIuMjk0OSkiIGZpbGw9IiMwQjBCMEIiLz4KPGVsbGlwc2UgY3g9IjMuMjM2NTkiIGN5PSI0LjIyNjY3IiByeD0iMy4yMzY1OSIgcnk9IjQuMjI2NjciIHRyYW5zZm9ybT0ibWF0cml4KDAuNzY1MzM1IDAuNjQzNjMyIC0wLjYxNTk2NyAwLjc4Nzc3MiA1NS45NjA5IDQyLjI5NDkpIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjIzNjU5IiBjeT0iNC4yMjY2NyIgcng9IjMuMjM2NTkiIHJ5PSI0LjIyNjY3IiB0cmFuc2Zvcm09Im1hdHJpeCgwLjc2NTMzNSAwLjY0MzYzMiAtMC42MTU5NjcgMC43ODc3NzIgNjguMDQ1OSA0Mi4yOTQ5KSIgZmlsbD0iIzBCMEIwQiIvPgo8ZWxsaXBzZSBjeD0iMy4yMzY1OSIgY3k9IjQuMjI2NjciIHJ4PSIzLjIzNjU5IiByeT0iNC4yMjY2NyIgdHJhbnNmb3JtPSJtYXRyaXgoMC43NjUzMzUgMC42NDM2MzIgLTAuNjE1OTY3IDAuNzg3NzcyIDI5LjM3NiA0Mi4yOTQ5KSIgZmlsbD0iIzBCMEIwQiIvPgo8ZWxsaXBzZSBjeD0iMy4yMzY1OSIgY3k9IjQuMjI2NjciIHJ4PSIzLjIzNjU5IiByeT0iNC4yMjY2NyIgdHJhbnNmb3JtPSJtYXRyaXgoMC43NjUzMzUgMC42NDM2MzIgLTAuNjE1OTY3IDAuNzg3NzcyIDE3LjI5MSA0Mi4yOTQ5KSIgZmlsbD0iIzBCMEIwQiIvPgo8ZWxsaXBzZSBjeD0iMy4yMzY1OSIgY3k9IjQuMjI2NjciIHJ4PSIzLjIzNjU5IiByeT0iNC4yMjY2NyIgdHJhbnNmb3JtPSJtYXRyaXgoMC43NjUzMzUgMC42NDM2MzIgLTAuNjE1OTY3IDAuNzg3NzcyIDUuMjA3MDMgNDIuMjk0OSkiIGZpbGw9IiMwQjBCMEIiLz4KPHBhdGggZD0iTTcuMjUwOTggMjUuMzc3SDcwLjA4OTciIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxwYXRoIGQ9Ik03LjI1MDk4IDE5LjMzNUg3MC4wODk3IiBzdHJva2U9IiMwQjBCMEIiIHN0cm9rZS13aWR0aD0iNCIvPgo8L3N2Zz4K", "7": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzMiIGhlaWdodD0iNTQiIHZpZXdCb3g9IjAgMCA3MyA1NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTM3LjIzNjcgMTJMNDAuODYwNyAzLjk4NEw0MS4xMjQ3IDQuMzY4TDM1LjkyODcgNC4zNjhMMzYuMzcyNyAzLjk0OEwzNi4zNzI3IDUuOTRMMzUuNTIwNyA1Ljk0TDM1LjUyMDcgMy42TDQxLjY4ODcgMy42TDQxLjY4ODcgNC4yMTJMMzguMTcyNyAxMkwzNy4yMzY3IDEyWiIgZmlsbD0iIzBCMEIwQiIvPgo8cGF0aCBkPSJNNy4yNTA5OCA0NS45MjFWMTguMTI3SDcwLjA4OTdWNDUuOTIxIiBzdHJva2U9IiMwQjBCMEIiIHN0cm9rZS13aWR0aD0iMC41Ii8+CjxwYXRoIGQ9Ik0xOS42MjYgMTguMTI3VjQ1LjQ3NzUiIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIwLjUiLz4KPHBhdGggZD0iTTMyLjM4MDkgMTguMTI3VjQ1LjQ3NzUiIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIwLjUiLz4KPHBhdGggZD0iTTQ1LjEzNzcgMTguMTI3VjQ1LjQ3NzUiIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIwLjUiLz4KPHBhdGggZD0iTTU3Ljg5NDUgMTguMTI3VjQ1LjQ3NzUiIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIwLjUiLz4KPGVsbGlwc2UgY3g9IjMuMjM2NTkiIGN5PSI0LjIyNjY3IiByeD0iMy4yMzY1OSIgcnk9IjQuMjI2NjciIHRyYW5zZm9ybT0ibWF0cml4KDAuNzY1MzM1IDAuNjQzNjMyIC0wLjYxNTk2NyAwLjc4Nzc3MiA0Mi42Njg5IDQyLjI5NDkpIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjIzNjU5IiBjeT0iNC4yMjY2NyIgcng9IjMuMjM2NTkiIHJ5PSI0LjIyNjY3IiB0cmFuc2Zvcm09Im1hdHJpeCgwLjc2NTMzNSAwLjY0MzYzMiAtMC42MTU5NjcgMC43ODc3NzIgNTUuOTYwOSA0Mi4yOTQ5KSIgZmlsbD0iIzBCMEIwQiIvPgo8ZWxsaXBzZSBjeD0iMy4yMzY1OSIgY3k9IjQuMjI2NjciIHJ4PSIzLjIzNjU5IiByeT0iNC4yMjY2NyIgdHJhbnNmb3JtPSJtYXRyaXgoMC43NjUzMzUgMC42NDM2MzIgLTAuNjE1OTY3IDAuNzg3NzcyIDY4LjA0NTkgNDIuMjk0OSkiIGZpbGw9IiMwQjBCMEIiLz4KPGVsbGlwc2UgY3g9IjMuMjM2NTkiIGN5PSI0LjIyNjY3IiByeD0iMy4yMzY1OSIgcnk9IjQuMjI2NjciIHRyYW5zZm9ybT0ibWF0cml4KDAuNzY1MzM1IDAuNjQzNjMyIC0wLjYxNTk2NyAwLjc4Nzc3MiAyOS4zNzYgNDIuMjk0OSkiIGZpbGw9IiMwQjBCMEIiLz4KPGVsbGlwc2UgY3g9IjMuMjM2NTkiIGN5PSI0LjIyNjY3IiByeD0iMy4yMzY1OSIgcnk9IjQuMjI2NjciIHRyYW5zZm9ybT0ibWF0cml4KDAuNzY1MzM1IDAuNjQzNjMyIC0wLjYxNTk2NyAwLjc4Nzc3MiAxNy4yOTEgNDIuMjk0OSkiIGZpbGw9IiMwQjBCMEIiLz4KPGVsbGlwc2UgY3g9IjMuMjM2NTkiIGN5PSI0LjIyNjY3IiByeD0iMy4yMzY1OSIgcnk9IjQuMjI2NjciIHRyYW5zZm9ybT0ibWF0cml4KDAuNzY1MzM1IDAuNjQzNjMyIC0wLjYxNTk2NyAwLjc4Nzc3MiA1LjIwNzAzIDQyLjI5NDkpIiBmaWxsPSIjMEIwQjBCIi8+CjxwYXRoIGQ9Ik03LjI1MDk4IDI1LjM3N0g3MC4wODk3IiBzdHJva2U9IiMwQjBCMEIiIHN0cm9rZS13aWR0aD0iMiIvPgo8cGF0aCBkPSJNNy4yNTA5OCAxOS4zMzVINzAuMDg5NyIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjQiLz4KPC9zdmc+Cg==", "8": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTMiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCA1MyAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTggMjMuMTMzVjAuNUg0OS40OTM4VjIzLjEzMyIgc3Ryb2tlPSIjMEIwQjBCIi8+CjxwYXRoIGQ9Ik0yMS41OTU3IDAuNVYyMy4xMzMiIHN0cm9rZT0iIzBCMEIwQiIvPgo8cGF0aCBkPSJNMzUgMC41VjIzLjEzMyIgc3Ryb2tlPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgNDcuMzA2NiAyMC41KSIgZmlsbD0iIzBCMEIwQiIvPgo8ZWxsaXBzZSBjeD0iMy4wNTY4NiIgY3k9IjMuODI1MTMiIHJ4PSIzLjA1Njg2IiByeT0iMy44MjUxMyIgdHJhbnNmb3JtPSJtYXRyaXgoMC44MjU4MjMgMC41NjM5MjkgLTAuNjkzNjM4IDAuNzIwMzI0IDM0LjMwNjYgMjAuNSkiIGZpbGw9IiMwQjBCMEIiLz4KPGVsbGlwc2UgY3g9IjMuMDU2ODYiIGN5PSIzLjgyNTEzIiByeD0iMy4wNTY4NiIgcnk9IjMuODI1MTMiIHRyYW5zZm9ybT0ibWF0cml4KDAuODI1ODIzIDAuNTYzOTI5IC0wLjY5MzYzOCAwLjcyMDMyNCAxOS4zMDY2IDIwLjUpIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgNS4zMDY2NCAyMC41KSIgZmlsbD0iIzBCMEIwQiIvPgo8cGF0aCBkPSJNOCA2LjVINDkuNSIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTggMS41SDQ5LjUiIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxwYXRoIGQ9Ik04IDExLjVINDkuNSIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+Cg=="};
   const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-  // A negyed-kattintás ki/be kapcsolója a hamburger menüben. A menüpont kiírja az
-  // állapotát, és szándékosan nyitva hagyja a menüt, hogy lásd a váltást.
-  function renderBeatClickMenu(){
-    if(!beatClickItem)return;
-    beatClickItem.textContent=beatClickOn?'Beat Click: ON':'Beat Click';
-    beatClickItem.classList.toggle('active',beatClickOn);
-  }
   function ensureAudio(){if(audioCtx.state==='suspended')audioCtx.resume().catch(()=>{})}
-  function clickSound({freq=1200,gain=.28,dur=.05,type='square'}={}){ensureAudio();const now=audioCtx.currentTime,osc=audioCtx.createOscillator(),g=audioCtx.createGain();osc.type=type;osc.frequency.setValueAtTime(freq,now);g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(gain,now+.001);g.gain.exponentialRampToValueAtTime(.0001,now+dur);osc.connect(g);g.connect(audioCtx.destination);osc.start(now);osc.stop(now+dur+.01)}
-  const noteClick=a=>clickSound({freq:a?1750:1200,gain:a?.33:.28,dur:.05,type:'square'}), beatClick=()=>clickSound({freq:430,gain:.22,dur:.045,type:'square'});
-  // a felosztás kattintása: ugyanaz a karakter, kicsit magasabban és épphogy hallhatóan
-  const subClick=()=>clickSound({freq:600,gain:.05,dur:.026,type:'square'});
-  const tsOptions=[1,2,3,4,5,6,7,8], subOptions=[1,2,3,4,5,6,7,8]; let tsIndex=3,subIndex=3,beats=4,subdiv=4,gridSnap=true,beatClickOn=true,subClickOn=false,currentName=null,dirty=false,gridFeel=[],gridMode=false,gridDrag=null,lastSubInt=0,bpmMin=30,bpmMax=240,bpm=80,playing=false,beatPos=0,lastBeatInt=0,lastHitAt=new Map(),notes=[],groups=[],groupSeq=1,groupingsMode=false,openGroupId=null,paintSel=null;
+  // --- hangkészlet ----------------------------------------------------------
+  // Négy szólam szól: a negyed (time signature), a felosztás, a sima ritmushang és
+  // a hangsúlyos. A szólam adja az alaphangot, a hosszt és az erősséget — vagyis a
+  // szerepét a keverékben; a választott „voice" csak a karakterét színezi. Így egy
+  // új hang hozzáadásához nem kell a lejátszáshoz nyúlni.
+  const VOICES=[
+    {id:'click',name:'Click',type:'square',  dur:1,   gain:1,   bend:1},
+    {id:'tick', name:'Tick', type:'triangle',dur:.72, gain:1.15,bend:1},
+    {id:'wood', name:'Wood', type:'sine',    dur:1.5, gain:1.35,bend:.55},   // lefelé hajló: fás koppanás
+    {id:'blip', name:'Blip', type:'sawtooth',dur:.66, gain:.75, bend:1.7},   // felfelé hajló: elektronikus
+    {id:'pulse',name:'Pulse',type:'sine',    dur:2.4, gain:1.25,bend:1}      // hosszabb, lágy lüktetés
+  ];
+  const voiceById=id=>VOICES.find(v=>v.id===id)||VOICES[0];
+  const SLOTS={
+    beat:  {label:'Time Signature',hint:'quarter-note click',   freq:430, gain:.22,dur:.045},
+    sub:   {label:'Subdivision',   hint:'subdivision click',    freq:600, gain:.05,dur:.026},
+    note:  {label:'Note',          hint:'rhythm note',          freq:1200,gain:.28,dur:.05},
+    accent:{label:'Accent',        hint:'accented rhythm note', freq:1750,gain:.33,dur:.05}
+  };
+  const SLOT_ORDER=['beat','sub','note','accent'];
+  let sounds={beat:'click',sub:'click',note:'click',accent:'click'};
+  function playSlot(k){
+    const s=SLOTS[k],v=voiceById(sounds[k]);ensureAudio();
+    const now=audioCtx.currentTime,dur=s.dur*v.dur,osc=audioCtx.createOscillator(),g=audioCtx.createGain();
+    osc.type=v.type;osc.frequency.setValueAtTime(s.freq,now);
+    if(v.bend!==1)osc.frequency.exponentialRampToValueAtTime(s.freq*v.bend,now+dur);
+    g.gain.setValueAtTime(.0001,now);
+    g.gain.exponentialRampToValueAtTime(s.gain*v.gain,now+.001);
+    g.gain.exponentialRampToValueAtTime(.0001,now+dur);
+    osc.connect(g);g.connect(audioCtx.destination);osc.start(now);osc.stop(now+dur+.01);
+  }
+  const noteClick=a=>playSlot(a?'accent':'note'), beatClick=()=>playSlot('beat'), subClick=()=>playSlot('sub');
+  const tsOptions=[1,2,3,4,5,6,7,8], subOptions=[1,2,3,4,5,6,7,8]; let tsIndex=3,subIndex=3,beats=4,subdiv=4,gridSnap=true,beatClickOn=true,subClickOn=false,currentName=null,dirty=false,lastSubInt=0,bpmMin=30,bpmMax=240,bpm=80,playing=false,beatPos=0,lastBeatInt=0,lastHitAt=new Map(),notes=[],groups=[],groupSeq=1,groupingsMode=false,openGroupId=null,paintSel=null;
   const STORAGE_KEY='circlePatterns_v1';
   const readLibrary=()=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}catch{return {}}}, writeLibrary=o=>localStorage.setItem(STORAGE_KEY,JSON.stringify(o));
   // A hangok csak szöget és hangsúlyt visznek; a csoportok külön, szakaszként
   // mentődnek. A régi (v2/v3) mentések is betöltenek, csak csoport nélkül.
-  function snapshot(){return {version:4,beats,subdiv,bpm,gridSnap,beatClickOn,subClickOn,gridFeel:[...gridFeel],
+  function snapshot(){return {version:5,beats,subdiv,bpm,gridSnap,beatClickOn,subClickOn,sounds:{...sounds},
     notes:notes.map(n=>({angle:n.angle,accent:!!n.accent,root:rootOf(n)})),
     groups:groups.map(g=>({a1:g.a1,a2:g.a2}))}}
-  function applySnapshot(s){if(!s)return;beats=s.beats??beats;subdiv=s.subdiv??subdiv;bpm=s.bpm??bpm;gridSnap=!!s.gridSnap;beatClickOn=!!s.beatClickOn;subClickOn=!!s.subClickOn;gridFeel=Array.isArray(s.gridFeel)?[...s.gridFeel]:[];tsIndex=Math.max(0,tsOptions.indexOf(beats));subIndex=Math.max(0,subOptions.indexOf(subdiv));
+  function applySnapshot(s){if(!s)return;beats=s.beats??beats;subdiv=s.subdiv??subdiv;bpm=s.bpm??bpm;gridSnap=!!s.gridSnap;beatClickOn=!!s.beatClickOn;subClickOn=!!s.subClickOn;tsIndex=Math.max(0,tsOptions.indexOf(beats));subIndex=Math.max(0,subOptions.indexOf(subdiv));
+    // ismeretlen hangnév (régi vagy sérült mentés) esetén marad a mostani
+    for(const k of SLOT_ORDER)if(s.sounds&&VOICES.some(v=>v.id===s.sounds[k]))sounds[k]=s.sounds[k];
     notes.length=0;groups.length=0;openGroupId=null;
     for(const n of(s.notes||[]))notes.push({id:Date.now()+Math.random(),angle:n.angle,accent:!!n.accent,root:n.root??nearestGridAngle(n.angle)});
     for(const g of(s.groups||[]))groups.push({id:groupSeq++,a1:g.a1,a2:g.a2});
     lastHitAt.clear();invalidateStash();dirty=false;renderAllUI()}
-  const libSaveBtn=document.getElementById('libSaveBtn'), saveUpdateRow=document.getElementById('saveUpdateRow'), saveUpdate=document.getElementById('saveUpdate');
-  // A mentés a Library-ből indul: ott látod a meglévő neveket, így nem csinálsz duplikátumot.
+  const saveUpdateRow=document.getElementById('saveUpdateRow'), saveUpdate=document.getElementById('saveUpdate');
+  // A mentés és a könyvtár két külön hívószó: a mentéshez nem kell előbb a
+  // könyvtárat megnyitni. Ha a mostani név már szerepel a könyvtárban, a felülírás
+  // külön gombot kap, hogy a „mentés" ne csináljon észrevétlenül duplikátumot.
   function openSaveModal(){closeDropdown();closeLibModal();
     saveName.value=currentName||'';
     const known=!!currentName&&!!readLibrary()[currentName];
@@ -177,15 +246,101 @@
   phone.addEventListener('pointerdown',e=>{
     if(!dropdown.contains(e.target)&&!menuBtn.contains(e.target))closeDropdown();
   },{capture:true});
-  libraryItem.onpointerdown=e=>{e.preventDefault();ensureAudio();openLibModal()};beatClickItem.onpointerdown=e=>{e.preventDefault();ensureAudio();beatClickOn=!beatClickOn;renderButtons()};clearPatternItem.onpointerdown=e=>{e.preventDefault();ensureAudio();notes.length=0;groups.length=0;openGroupId=null;lastHitAt.clear();invalidateStash();closeDropdown();renderButtons()};
+  savePatternItem.onpointerdown=e=>{e.preventDefault();ensureAudio();openSaveModal()};
+  libraryItem.onpointerdown=e=>{e.preventDefault();ensureAudio();openLibModal()};
+  soundsItem.onpointerdown=e=>{e.preventDefault();ensureAudio();openSoundModal()};
+  clearPatternItem.onpointerdown=e=>{e.preventDefault();ensureAudio();notes.length=0;groups.length=0;openGroupId=null;lastHitAt.clear();invalidateStash();closeDropdown();renderButtons()};
   saveConfirm.onpointerdown=e=>{e.preventDefault();doSave()};saveUpdate.onpointerdown=e=>{e.preventDefault();doUpdate()};
-  libSaveBtn.onpointerdown=e=>{e.preventDefault();ensureAudio();openSaveModal()};
-  const libraryBtn=document.getElementById('libraryBtn'), deleteBtn=document.getElementById('deleteBtn');
+  const libraryBtn=document.getElementById('libraryBtn'), saveBtn=document.getElementById('saveBtn'), deleteBtn=document.getElementById('deleteBtn');
   libraryBtn.onpointerdown=e=>{e.preventDefault();ensureAudio();openLibModal()};
+  saveBtn.onpointerdown=e=>{e.preventDefault();ensureAudio();openSaveModal()};
   deleteBtn.onpointerdown=e=>{e.preventDefault();ensureAudio();
     notes.length=0;groups.length=0;openGroupId=null;lastHitAt.clear();invalidateStash();renderButtons()};saveClose.onpointerdown=saveCancel.onpointerdown=e=>{e.preventDefault();closeSaveModal()};saveModal.onpointerdown=e=>{if(e.target===saveModal)closeSaveModal()};saveName.onkeydown=e=>{if(e.key==='Enter')doSave();if(e.key==='Escape')closeSaveModal()};
   libClose.onpointerdown=libCloseBtn.onpointerdown=e=>{e.preventDefault();closeLibModal()};libModal.onpointerdown=e=>{if(e.target===libModal)closeLibModal()};
-  function openBpmModal(){closeDropdown();bpmInput.value=String(bpm);bpmModal.classList.add('open');setTimeout(()=>{bpmInput.focus();bpmInput.select()},0)} function closeBpmModal(){bpmModal.classList.remove('open')}
+  // --- Sounds panel ---------------------------------------------------------
+  // Egy helyen az összes hangdöntés: mi szóljon és szóljon-e. A ki/be kapcsoló
+  // ugyanazt az állapotot írja, mint a kerekek körüli gyűrű — a kettő mindig
+  // együtt mozog. Minden koppintás azonnal meg is szólaltatja a hangot, mert
+  // ezeket a különbségeket leírva nem, csak hallva lehet eldönteni.
+  const slotEnabled=k=>k==='beat'?beatClickOn:(k==='sub'?subClickOn:true);
+  function setSlotEnabled(k,on){if(k==='beat')beatClickOn=on;else if(k==='sub')subClickOn=on;renderButtons()}
+  function buildSoundPanel(){
+    soundBody.innerHTML='';
+    for(const k of SLOT_ORDER){
+      const s=SLOTS[k],row=document.createElement('div');row.className='sndRow';row.dataset.slot=k;
+      const head=document.createElement('div');head.className='sndHead';
+      const txt=document.createElement('div'),name=document.createElement('div'),hint=document.createElement('div');
+      name.className='sndName';name.textContent=s.label;hint.className='sndHint';hint.textContent=s.hint;
+      txt.append(name,hint);head.appendChild(txt);
+      if(k==='beat'||k==='sub'){        // a ritmushangoknak nincs kapcsolójuk: azok maguk a minta
+        const t=document.createElement('div');t.className='sndToggle';
+        t.onpointerdown=e=>{e.preventDefault();ensureAudio();const on=!slotEnabled(k);setSlotEnabled(k,on);syncSoundPanel();if(on)playSlot(k)};
+        head.appendChild(t);
+      }
+      row.appendChild(head);
+      const vs=document.createElement('div');vs.className='voices';
+      vs.style.gridTemplateColumns=`repeat(${VOICES.length},minmax(0,1fr))`;
+      for(const v of VOICES){
+        const b=document.createElement('div');b.className='voice';b.dataset.voice=v.id;b.textContent=v.name;
+        b.onpointerdown=e=>{e.preventDefault();ensureAudio();sounds[k]=v.id;dirty=true;syncSoundPanel();playSlot(k)};
+        vs.appendChild(b);
+      }
+      row.appendChild(vs);soundBody.appendChild(row);
+    }
+    const actions=document.createElement('div');actions.className='modalActions';actions.style.gridTemplateColumns='1fr';
+    const close=document.createElement('div');close.className='mBtn ghost';close.textContent='Close';
+    close.onpointerdown=e=>{e.preventDefault();closeSoundModal()};
+    actions.appendChild(close);soundBody.appendChild(actions);
+    syncSoundPanel();
+  }
+  function syncSoundPanel(){
+    for(const row of soundBody.querySelectorAll('.sndRow')){
+      const k=row.dataset.slot,on=slotEnabled(k);
+      row.classList.toggle('off',!on);
+      const t=row.querySelector('.sndToggle');if(t)t.classList.toggle('on',on);
+      for(const b of row.querySelectorAll('.voice'))b.classList.toggle('sel',sounds[k]===b.dataset.voice);
+    }
+  }
+  function openSoundModal(){closeDropdown();buildSoundPanel();soundModal.classList.add('open')}
+  function closeSoundModal(){soundModal.classList.remove('open')}
+  soundClose.onpointerdown=e=>{e.preventDefault();closeSoundModal()};
+  soundModal.onpointerdown=e=>{if(e.target===soundModal)closeSoundModal()};
+  // --- TAP tempó ------------------------------------------------------------
+  // Az ütések közti időt átlagoljuk, nem a legutolsó közt mérünk: egyetlen
+  // bizonytalan ütés így nem rántja el a számot. Csak a friss ütések számítanak,
+  // és hosszabb szünet után új mérés indul — különben a régi tempó húzná vissza.
+  const bpmTap=document.getElementById('bpmTap'), bpmTapHint=document.getElementById('bpmTapHint');
+  const TAP_WINDOW=8, TAP_RESET_MS=2500, TAP_MIN_MS=80;   // 80 ms = 750 BPM, ütésnek már nem az
+  let tapTimes=[];
+  function resetTaps(){tapTimes=[];bpmTapHint.textContent='tap the beat'}
+  function doTap(){
+    const now=performance.now(),last=tapTimes[tapTimes.length-1];
+    // duplán kiváltott esemény: nullával osztanánk, és a tempó a plafonra ugrana
+    if(last!=null&&now-last<TAP_MIN_MS)return;
+    if(last!=null&&now-last>TAP_RESET_MS)tapTimes=[];
+    tapTimes.push(now);
+    if(tapTimes.length>TAP_WINDOW)tapTimes.shift();
+    playSlot('beat');                       // hallani kell, amit ütsz
+    bpmTap.classList.add('hit');setTimeout(()=>bpmTap.classList.remove('hit'),90);
+    if(tapTimes.length<2){bpmTapHint.textContent='keep tapping…';return}
+    const span=tapTimes[tapTimes.length-1]-tapTimes[0];
+    const raw=Math.round(60000/(span/(tapTimes.length-1)));
+    const v=Math.max(bpmMin,Math.min(bpmMax,raw));
+    bpmInput.value=String(v);
+    bpmTapHint.textContent=raw===v?`${tapTimes.length} taps · ${v} BPM`
+                                  :`${raw} BPM — limited to ${v}`;   // kilógott a sávból
+  }
+  bpmTap.onpointerdown=e=>{e.preventDefault();ensureAudio();doTap()};
+  // szóközzel is üthető: asztali gépen ez a természetes mozdulat, és a mező
+  // fókuszban van, ezért a szóköz beírását meg kell akadályozni. A lenyomva
+  // tartás automatikus ismétlését kihagyjuk, különben magától felpörgetné a tempót.
+  bpmModal.addEventListener('keydown',e=>{
+    if(e.key!==' '&&e.code!=='Space')return;
+    e.preventDefault();
+    if(e.repeat)return;
+    ensureAudio();doTap();
+  });
+  function openBpmModal(){closeDropdown();bpmInput.value=String(bpm);resetTaps();bpmModal.classList.add('open');setTimeout(()=>{bpmInput.focus();bpmInput.select()},0)} function closeBpmModal(){bpmModal.classList.remove('open')}
   function applyBpm(){const v=parseInt(bpmInput.value,10);if(Number.isFinite(v))bpm=Math.max(bpmMin,Math.min(bpmMax,v));dirty=true;closeBpmModal()}
   bpmConfirm.onpointerdown=e=>{e.preventDefault();ensureAudio();applyBpm()};bpmClose.onpointerdown=bpmCancel.onpointerdown=e=>{e.preventDefault();closeBpmModal()};bpmModal.onpointerdown=e=>{if(e.target===bpmModal)closeBpmModal()};bpmInput.onkeydown=e=>{if(e.key==='Enter')applyBpm();if(e.key==='Escape')closeBpmModal()};
   // A kerék öt elemet rajzol, hogy görgetés közben se nyíljon lyuk a széleken.
@@ -282,7 +437,6 @@
   // mostantól az új rács legközelebbi pontjához képest értendő. Görgetés közben
   // ez is csak a gesztus végén fut le, hogy a köztes rácsok ne rángassák a hangokat.
   function applySubGrid(){
-    gridFeel=[];   // más osztásszám, a régi eltolások értelmüket vesztik
     if(gridSnap){
       for(const n of notes)n.angle=nearestGridAngle(n.angle);
       // ritkuló rácson két hang egy helyre eshet: egy marad, a hangsúlyt megörökölve
@@ -308,15 +462,10 @@
   subWheel.addEventListener('contextmenu',e=>e.preventDefault());
   gridSnapBtn.onpointerdown=e=>{e.preventDefault();ensureAudio();gridSnap=!gridSnap;renderButtons()};
   // A GROUP NOTES gomb egyetlen dolgot csinál: be/kilép a csoportosító módból.
-  function setGroupMode(on){groupingsMode=on;paintSel=null;openGroupId=null;if(on)gridMode=false;renderButtons()}
-  // Grid Feel mód: a gyűrűn húzva magát a rácsot tolod el, nem a hangokat.
-  const gridFeelItem=document.getElementById('gridFeelItem');
-  function setGridMode(on){gridMode=on;gridDrag=null;if(on){groupingsMode=false;openGroupId=null}renderButtons()}
-  gridFeelItem.onpointerdown=e=>{e.preventDefault();ensureAudio();setGridMode(!gridMode)};
-  function renderGridMenu(){gridFeelItem.textContent=gridMode?'Grid Feel: ON':'Grid Feel';
-    gridFeelItem.classList.toggle('active',gridMode)}
+  function setGroupMode(on){groupingsMode=on;paintSel=null;openGroupId=null;renderButtons()}
   groupBtn.onpointerdown=e=>{e.preventDefault();ensureAudio();closeDropdown();setGroupMode(!groupingsMode)};
-  function renderButtons(){tsWheel.classList.toggle('sndOn',beatClickOn);subWheel.classList.toggle('sndOn',subClickOn);gridSnapBtn.classList.toggle('active',gridSnap);groupBtn.classList.toggle('active',groupingsMode);renderBeatClickMenu();renderGridMenu()}
+  function renderButtons(){tsWheel.classList.toggle('sndOn',beatClickOn);subWheel.classList.toggle('sndOn',subClickOn);gridSnapBtn.classList.toggle('active',gridSnap);groupBtn.classList.toggle('active',groupingsMode);
+    if(soundModal.classList.contains('open'))syncSoundPanel()}   // a gyűrűs kapcsoló és a panel ugyanazt mutatja
   function renderAllUI(){makePicker(tsWheel,tsOptions,tsIndex,v=>`${v}/4`,false);makePicker(subWheel,subOptions,subIndex,v=>v,true);renderButtons()}
   // --- Csoport-modell -------------------------------------------------------
   // Egy csoport a gyűrű egy szakasza: {id,a1,a2} = az általa lefedett első és
@@ -325,32 +474,11 @@
   // szakaszba esik. Így hang nélkül is létezhet csoport, üres csoport is van, és
   // egy hang törlése nem szünteti meg a csoportot.
   const totalSlots=()=>beats*Math.max(1,subdiv);
-  // --- torzítható rács (groove-sablon) ------------------------------------
-  // A gridFeel az ütésen belüli osztások eltolása, a rácsosztás törtrészében.
-  // Ütésenként ismétlődik, tehát egy mozdulattal az egész ütem feel-je áll.
-  // valódi moduló: a slotAngle-t negatív slot-indexszel is hívjuk (csoport
-  // visszafelé mozgatása a 0. slot határán át), a JS % viszont ott negatívat ad
-  const feelOf=i=>{const sd=Math.max(1,subdiv);return gridFeel[((i%sd)+sd)%sd]||0};
-  function slotAngle(i){const st=gridStepAngle();return base+i*st+feelOf(i)*st}
-  // A legközelebbi slot keresése: az elméleti jelöltet és a két szomszédját nézzük,
-  // mert az eltolás miatt a sorrend a határok közelében felborulhat.
-  function gridIndex(a){
-    const t=totalSlots(),st=gridStepAngle(),c=Math.round((a-base)/st);
-    let best=0,bd=Infinity;
-    for(let k=-1;k<=1;k++){const i=((c+k)%t+t)%t,d=Math.abs(shortestAngleDiff(a,slotAngle(i)));
-      if(d<bd){bd=d;best=i}}
-    return best;
-  }
-  // Egy osztás-osztály elmozgatása: a rá eső hangok (és a rootjuk) vele mennek.
-  function nudgeFeel(cls,delta){
-    const sd=Math.max(1,subdiv),st=gridStepAngle();
-    const cur=gridFeel[cls]||0,next=Math.max(-.49,Math.min(.49,cur+delta));
-    const d=(next-cur)*st;if(!d)return;
-    const moved=notes.filter(n=>gridIndex(n.angle)%sd===cls);
-    gridFeel[cls]=next;
-    for(const n of moved){n.angle+=d;n.root=rootOf(n)+d}
-    dirty=true;
-  }
+  // A rács egyenletes. A slotAngle negatív indexet is kap (csoport visszafelé
+  // mozgatása a 0. slot határán át), ezért nem normalizálunk benne — a szög
+  // körkörös, a hívó pedig így ki tudja számolni a tényleges elmozdulást.
+  const slotAngle=i=>base+i*gridStepAngle();
+  const gridIndex=a=>{const t=totalSlots();return ((Math.round((a-base)/gridStepAngle())%t)+t)%t};
   function groupIndices(g){
     const t=totalSlots(),n=Math.min(Math.round((g.a2-g.a1)/gridStepAngle())+1,t),i0=gridIndex(g.a1),out=[];
     for(let k=0;k<n;k++)out.push((i0+k)%t);
@@ -620,8 +748,8 @@
   // A BPM kijelző koppintható mezője a középső korongon belül
   function bpmFieldRect(){const c=dialCenter(),iR=dialRadius()*.72;return {x:c.x-iR*.30,y:c.y+iR*.22,w:iR*.60,h:iR*.38}}
   function inBpmField(x,y){const r=bpmFieldRect();return x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h}
-  // A minta neve / „UNSAVED” felirat a BPM alatt — ez pótolja a SAVE hívószót:
-  // nem csak lehetőséget kínál, hanem megmondja, kell-e menteni.
+  // A minta neve / „UNSAVED” felirat a BPM alatt: megmondja, kell-e menteni, és
+  // koppintásra egyből a mentést nyitja — ott van, ahol a kérdés felmerül.
   function nameFieldRect(){const c=dialCenter(),iR=dialRadius()*.72;return {x:c.x-iR*.44,y:c.y+iR*.62,w:iR*.88,h:iR*.24}}
   function inNameField(x,y){const r=nameFieldRect();return x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h}
   const patternLabel=()=>currentName?(dirty?currentName+' •':currentName):'UNSAVED';
@@ -631,13 +759,6 @@
   canvas.addEventListener('pointerdown',ev=>{
     ev.preventDefault();ensureAudio();canvas.setPointerCapture(ev.pointerId);
     const p=posFromEvent(ev),c=dialCenter(),R=dialRadius(),dc=Math.hypot(p.x-c.x,p.y-c.y);
-    // Grid Feel mód: a gyűrűn húzva az adott osztás-osztály tolódik el minden ütésben
-    if(gridMode){
-      if(!isOnRing(p.x,p.y)){setGridMode(false);return}
-      const a=angleBetween(c.x,c.y,p.x,p.y);
-      gridDrag={cls:gridIndex(a)%Math.max(1,subdiv),prevA:a,pointerId:ev.pointerId};
-      return;
-    }
     // Csoportosító mód: a sávon húzva jelölsz ki, koppintva törölsz, a gyűrű mellé koppintva kilépsz
     if(groupingsMode){
       if(!isOnRing(p.x,p.y)){setGroupMode(false);return}
@@ -668,7 +789,7 @@
       const og=groupById(openGroupId);
       if(!(og&&isOnRing(p.x,p.y)&&groupHas(og,angleBetween(c.x,c.y,p.x,p.y)))){openGroupId=null;return}
     }
-    if(inNameField(p.x,p.y)){openLibModal();return}
+    if(inNameField(p.x,p.y)){openSaveModal();return}
     if(inBpmField(p.x,p.y)){openBpmModal();return}
     if(dc<R*.28){playing=!playing;if(playing){beatPos=Math.floor(beatPos);lastBeatInt=Math.floor(beatPos);lastHitAt.clear()}return}
     if(dc<R*.58){bpmDrag={startAngle:angleBetween(c.x,c.y,p.x,p.y),startBpm:bpm,pointerId:ev.pointerId};return}
@@ -691,11 +812,6 @@
   });
   canvas.addEventListener('pointermove',ev=>{
     ev.preventDefault();const p=posFromEvent(ev),c=dialCenter(),a=angleBetween(c.x,c.y,p.x,p.y);
-    if(gridDrag&&gridDrag.pointerId===ev.pointerId){
-      const d=shortestAngleDiff(a,gridDrag.prevA);gridDrag.prevA=a;
-      nudgeFeel(gridDrag.cls,d/gridStepAngle());
-      return;
-    }
     if(paintSel&&paintSel.pointerId===ev.pointerId){
       paintSel.acc+=shortestAngleDiff(a,paintSel.prevA);paintSel.prevA=a; // halmozva: a teljes kör is bejárható
       if(Math.hypot(p.x-paintSel.x0,p.y-paintSel.y0)>10)paintSel.moved=true;
@@ -734,7 +850,6 @@
     if(bpmDrag&&bpmDrag.pointerId===ev.pointerId){const delta=shortestAngleDiff(a,bpmDrag.startAngle);bpm=bpmFromDelta(delta)}
   });
   function endPointer(ev){
-    if(gridDrag&&gridDrag.pointerId===ev.pointerId)gridDrag=null;
     if(holdTimer){clearTimeout(holdTimer);holdTimer=null}
     // csoportra koppintás mozgás nélkül: hang lekerül, nem kell hozzá megnyitni
     if(ringHold&&ringHold.pointerId===ev.pointerId){
@@ -806,7 +921,7 @@
         ctx.lineTo(mx+Math.cos(a)*d,my+Math.sin(a)*d);ctx.closePath();
       }else{ctx.moveTo(mx+rr,my);ctx.arc(mx,my,rr,0,Math.PI*2)}
     }
-    ctx.fillStyle=`rgba(255,255,255,${groupingsMode||gridMode?.20:.13})`;ctx.fill();
+    ctx.fillStyle=`rgba(255,255,255,${groupingsMode?.20:.13})`;ctx.fill();
     // idő-impulzus: a sáv alapból sima, kizárólag a playhead mögötti csóva bordázott,
     // és csak lejátszás közben. A csóván belül sávonként halványodik a fény.
     if(playing){
@@ -869,18 +984,6 @@
       ctx.font=`900 ${Math.round(15*s*(live?1.06:1))}px Montserrat, sans-serif`;ctx.fillStyle=`hsla(${hue},60%,20%,${al})`;
       ctx.fillText(String(groupCount(g)),c.x+Math.cos(mid)*lr,c.y+Math.sin(mid)*lr);
     }
-    // a rács eltolása: osztályonként egyszer, az 1. ütésbeli példánynál
-    if(gridMode||gridFeel.some(v=>Math.abs(v)>.005)){
-      ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.font=`800 ${Math.round(12*s)}px Montserrat, sans-serif`;
-      const sd=Math.max(1,subdiv);
-      for(let cls=0;cls<sd;cls++){
-        const v=gridFeel[cls]||0;if(Math.abs(v)<.005)continue;
-        const pct=Math.round(v*100),ga=slotAngle(cls),lr=R+34*s;
-        ctx.fillStyle=`rgba(11,11,11,${gridMode?.85:.5})`;
-        ctx.fillText(`${pct>0?'+':''}${pct}%`,c.x+Math.cos(ga)*lr,c.y+Math.sin(ga)*lr);
-      }
-    }
     if(paintSel&&paintSel.moved){ // kijelölés közbeni előnézet
       const from=paintSel.acc>=0?paintSel.a0:paintSel.a0+paintSel.acc,len=Math.min(Math.abs(paintSel.acc),Math.PI*2);
       ctx.lineWidth=1.4*s;ctx.strokeStyle='rgba(11,11,11,.55)';ctx.fillStyle='rgba(255,255,255,.34)';
@@ -898,7 +1001,7 @@
     for(const dv of devs){ctx.strokeStyle=`rgba(11,11,11,${dv.live?.22:.13})`;drawArcShortest(dv.ga,dv.a,c.x,c.y,R)}
     for(const n of notes){const a=getNoteAngle(n)+noteVis(n),x=c.x+Math.cos(a)*R,y=c.y+Math.sin(a)*R;
       // csoportosító módban, illetve nyitott csoport mellett a többi hang halványul
-      const og=anyOpen?groupById(openGroupId):null,dim=groupingsMode||gridMode||(anyOpen&&!(og&&groupHas(og,a)));
+      const og=anyOpen?groupById(openGroupId):null,dim=groupingsMode||(anyOpen&&!(og&&groupHas(og,a)));
       // megszólaláskor rövid, lecsengő tágulás
       const t=(frameNow-(n.hit??-1e9))/PULSE_MS;
       const pulse=t>=0&&t<1?1+(n.accent?.40:.30)*Math.pow(1-t,2):1;
