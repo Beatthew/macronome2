@@ -1,0 +1,1225 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Macronome — Sequence Export</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#16191c;color:#e8ecef;
+    font-family:'Montserrat',system-ui,-apple-system,sans-serif;font-size:14px;
+    -webkit-user-select:none;user-select:none}
+  .wrap{display:grid;grid-template-columns:minmax(330px,390px) 1fr;height:100vh}
+  .pane{padding:18px;overflow-y:auto}
+  .left{border-right:1px solid rgba(255,255,255,.09)}
+  h1{font-size:14px;font-weight:800;letter-spacing:.10em;text-transform:uppercase;margin:0 0 3px}
+  .sub{font-size:11px;color:rgba(255,255,255,.42);margin-bottom:16px;line-height:1.5}
+  label,.secTitle{display:block;font-size:10px;font-weight:800;letter-spacing:.12em;
+    text-transform:uppercase;color:rgba(255,255,255,.42);margin:18px 0 8px}
+  button,.btn{padding:9px 13px;border-radius:9px;border:1px solid rgba(255,255,255,.16);
+    background:rgba(255,255,255,.06);color:#e8ecef;font-family:inherit;font-size:12px;font-weight:700;
+    letter-spacing:.04em;cursor:pointer}
+  button:hover,.btn:hover{background:rgba(255,255,255,.12)}
+  button.primary{background:#dfe6ea;color:#14171a;border-color:transparent}
+  button.primary:hover{background:#fff}
+  button:disabled{opacity:.42;cursor:default}
+  input[type=number],input[type=text],select{width:100%;padding:8px 9px;border-radius:8px;
+    border:1px solid rgba(255,255,255,.14);background:#0f1113;color:#dfe6ea;
+    font-family:inherit;font-size:13px;outline:none}
+  input:focus,select:focus{border-color:rgba(255,255,255,.34)}
+  .row{display:flex;gap:9px;align-items:flex-end;flex-wrap:wrap}
+  .fld{flex:1 1 88px;min-width:78px}
+  .fld .cap{font-size:10px;color:rgba(255,255,255,.45);margin-bottom:5px;letter-spacing:.05em}
+
+  /* --- szekvencia-lista --- */
+  .steps{display:flex;flex-direction:column;gap:7px}
+  .step{border:1px solid rgba(255,255,255,.13);border-radius:11px;background:rgba(255,255,255,.04);
+    padding:9px 11px;cursor:pointer;display:flex;align-items:center;gap:10px}
+  .step:hover{background:rgba(255,255,255,.08)}
+  .step.sel{border-color:rgba(255,255,255,.62);background:rgba(255,255,255,.11)}
+  .stepNo{width:22px;height:22px;flex:none;border-radius:50%;display:grid;place-items:center;
+    background:rgba(255,255,255,.13);font-size:11px;font-weight:800}
+  .step.sel .stepNo{background:#dfe6ea;color:#14171a}
+  .stepMain{flex:1;min-width:0}
+  .stepGroups{font-size:13px;font-weight:800;letter-spacing:.03em;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis}
+  .stepMeta{font-size:10.5px;color:rgba(255,255,255,.46);margin-top:2px}
+  .stepDel{flex:none;width:24px;height:24px;border-radius:7px;display:grid;place-items:center;
+    font-size:13px;color:rgba(255,255,255,.45);border:1px solid transparent;background:transparent}
+  .stepDel:hover{color:#ff9b9b;border-color:rgba(255,90,90,.4);background:rgba(255,60,60,.14)}
+  .slideMark{font-size:10px;color:#8fd0b0;letter-spacing:.05em;margin:1px 0 1px 32px}
+
+  /* --- tárcsa + kezelőszervek --- */
+  .stage{display:flex;flex-direction:column;align-items:center;gap:14px;padding-top:6px}
+  .checker{border-radius:12px;overflow:hidden;background-color:#3a3f44;
+    background-image:linear-gradient(45deg,#2b2f33 25%,transparent 25%,transparent 75%,#2b2f33 75%),
+                     linear-gradient(45deg,#2b2f33 25%,transparent 25%,transparent 75%,#2b2f33 75%);
+    background-size:24px 24px;background-position:0 0,12px 12px}
+  .checker.app{background-color:#90A9A9;background-image:none}
+  .checker.green{background-color:#00b140;background-image:none}
+  .checker.dark{background-color:#0d0f11;background-image:none}
+  #dial{display:block;width:min(56vh,470px);height:min(56vh,470px);touch-action:none;cursor:crosshair}
+  .ctrls{width:min(56vh,470px);display:flex;flex-direction:column;gap:12px}
+  .wheels{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .pickerBox{display:flex;flex-direction:column;align-items:center;
+    border:1px solid rgba(255,255,255,.13);border-radius:12px;padding:9px 6px 6px}
+  .pickerTitle{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;
+    color:rgba(255,255,255,.48);margin-bottom:6px}
+  .wheel{position:relative;width:100%;height:74px;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;cursor:ns-resize;touch-action:none}
+  .wheelInner{display:flex;flex-direction:column;align-items:center;gap:8px;
+    transition:transform .16s ease-out;will-change:transform}
+  .wheel.dragging .wheelInner{transition:none}
+  .pickItem{height:26px;flex:none;display:flex;align-items:center;justify-content:center;
+    font-size:19px;font-weight:400;color:rgba(255,255,255,.20);transition:color .15s,transform .15s}
+  .pickItem.active{color:rgba(255,255,255,.98);transform:scale(1.04)}
+  .subIcon{display:block;max-width:30px;max-height:22px;filter:brightness(0) invert(1);opacity:.22}
+  .pickItem.active .subIcon{opacity:1}
+  .toggles{display:flex;gap:9px}
+  .toggles button{flex:1}
+  .toggles button.on{background:#dfe6ea;color:#14171a;border-color:transparent}
+  .hintLine{font-size:10.5px;color:rgba(255,255,255,.40);line-height:1.6;text-align:center}
+
+  .msgs{margin-top:12px;font-size:11.5px;line-height:1.6}
+  .msg{padding:7px 10px;border-radius:8px;margin-bottom:6px}
+  .msg.err{background:rgba(220,60,60,.16);color:#ffb9b9;border:1px solid rgba(220,60,60,.32)}
+  .msg.warn{background:rgba(220,170,60,.14);color:#ffdda0;border:1px solid rgba(220,170,60,.28)}
+  .msg.ok{background:rgba(90,190,140,.13);color:#a9e9c9;border:1px solid rgba(90,190,140,.26)}
+  #prog{margin-top:10px;height:5px;border-radius:99px;background:rgba(255,255,255,.10);
+    overflow:hidden;display:none}
+  #progBar{height:100%;width:0;background:#8fb0c4;transition:width .1s}
+  textarea{width:100%;height:132px;padding:10px;border-radius:9px;resize:vertical;
+    border:1px solid rgba(255,255,255,.14);background:#0f1113;color:#dfe6ea;
+    font-family:ui-monospace,Consolas,monospace;font-size:11.5px;line-height:1.6;outline:none}
+  details{margin-top:16px}
+  summary{cursor:pointer;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    color:rgba(255,255,255,.42)}
+  .transport{display:flex;align-items:center;gap:10px;width:min(56vh,470px)}
+  #scrub{flex:1;accent-color:#8fb0c4}
+  .tc{font-variant-numeric:tabular-nums;font-size:11px;color:rgba(255,255,255,.58);
+    min-width:112px;text-align:right}
+  .bgpick{display:flex;gap:6px;justify-content:center}
+  .bgpick button{padding:5px 10px;font-size:10.5px;font-weight:600}
+  .bgpick button.on{background:#dfe6ea;color:#14171a;border-color:transparent}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="pane left">
+    <h1>Macronome — Sequence Export</h1>
+    <div class="sub">Rakd össze a patterneket, add meg hányszor menjenek le, és exportáld videóba.</div>
+
+    <div class="secTitle">Szekvencia</div>
+    <div class="steps" id="steps"></div>
+    <div class="row" style="margin-top:9px">
+      <button id="addStep" style="flex:1">+ Új lépés (az aktuális másolata)</button>
+    </div>
+
+    <div class="secTitle">A kijelölt lépés</div>
+    <div class="row">
+      <div class="fld"><div class="cap">Ismétlés</div>
+        <input id="stepRepeat" type="number" min="1" max="99" step="1" value="3"></div>
+      <div class="fld"><div class="cap">Átúszás (ütem)</div>
+        <input id="stepSlide" type="number" min="0" max="8" step="1" value="1"></div>
+      <div class="fld"><div class="cap">BPM</div>
+        <input id="stepBpm" type="number" min="20" max="400" step="1" value="80"></div>
+    </div>
+    <div class="hintLine" style="text-align:left;margin-top:7px">
+      Az átúszás 0 értéke kemény vágás. Az első lépésnél nincs értelmezve.
+    </div>
+
+    <div class="secTitle">Kimenet</div>
+    <div class="row">
+      <div class="fld"><div class="cap">Felbontás</div>
+        <select id="size">
+          <option value="1080" selected>1080 × 1080</option>
+          <option value="720">720 × 720</option>
+          <option value="1440">1440 × 1440</option>
+        </select></div>
+      <div class="fld"><div class="cap">fps</div>
+        <select id="fps"><option value="25" selected>25</option><option value="24">24</option>
+          <option value="30">30</option><option value="50">50</option><option value="60">60</option>
+        </select></div>
+      <div class="fld"><div class="cap">Méret %</div>
+        <input id="zoom" type="number" min="40" max="130" step="5" value="100"></div>
+    </div>
+    <div class="row" style="margin-top:9px">
+      <label style="display:flex;align-items:center;gap:8px;margin:0;text-transform:none;
+        letter-spacing:0;font-size:12px;font-weight:500;color:rgba(255,255,255,.74)">
+        <input type="checkbox" id="optDev" checked style="width:16px;height:16px;accent-color:#8fb0c4">
+        Off-grid % a lejátszásban és az exportban
+      </label>
+    </div>
+    <div class="row" style="margin-top:9px">
+      <div class="fld" style="flex:2 1 190px"><div class="cap">MP4 háttere (kulcsozáshoz)</div>
+        <select id="keyColor">
+          <option value="#00b140" selected>Zöld — #00B140</option>
+          <option value="#0047bb">Kék — #0047BB</option>
+          <option value="#ff00ff">Magenta — #FF00FF</option>
+          <option value="#90A9A9">Az app háttere — #90A9A9</option>
+          <option value="#000000">Fekete — #000000</option>
+        </select></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button id="mp4Btn" class="primary" style="flex:1">MP4 exportálása</button>
+      <button id="pngBtn" style="flex:1">PNG-sorozat (alfával)</button>
+    </div>
+    <div id="prog"><div id="progBar"></div></div>
+    <div class="msgs" id="msgs"></div>
+
+    <details>
+      <summary>Szöveges forgatókönyv</summary>
+      <textarea id="script" spellcheck="false"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button id="loadScript" style="flex:1">Betöltés a szövegből</button>
+      </div>
+    </details>
+  </div>
+
+  <div class="pane">
+    <div class="stage">
+      <div class="checker" id="checker"><canvas id="dial" width="940" height="940"></canvas></div>
+      <div class="bgpick">
+        <button data-bg="" class="on">Sakktábla</button>
+        <button data-bg="app">App háttér</button>
+        <button data-bg="green">Zöld</button>
+        <button data-bg="dark">Sötét</button>
+      </div>
+      <div class="ctrls">
+        <div class="wheels">
+          <div class="pickerBox"><div class="pickerTitle">Time Signature</div>
+            <div class="wheel" id="tsWheel"></div></div>
+          <div class="pickerBox"><div class="pickerTitle">Subdivision</div>
+            <div class="wheel" id="subWheel"></div></div>
+        </div>
+        <div class="toggles">
+          <button id="snapBtn" class="on">GRID SNAP</button>
+          <button id="groupBtn">GROUP NOTES</button>
+          <button id="clearBtn">DELETE NOTES</button>
+        </div>
+        <div class="hintLine" id="dialHint"></div>
+      </div>
+      <div class="transport">
+        <button id="playBtn">▶</button>
+        <input id="scrub" type="range" min="0" max="0" step="1" value="0">
+        <div class="tc" id="tc">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(()=>{
+const icons={"1": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iNDMiIHZpZXdCb3g9IjAgMCAxNCA0MyIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggb3BhY2l0eT0iMC45MSIgZD0iTTEwLjg0MjcgMzEuNzI2NkMxMS42Njk3IDMyLjI1NjEgMTIuMzIyMiAzMi45OTUzIDEyLjY5NzIgMzMuOTE1QzEzLjgzNjMgMzYuNzA5MiAxMS45OTIzIDQwLjEwMjcgOC41NzkwNiA0MS40OTQxQzUuMTY1ODYgNDIuODg1NiAxLjQ3NTk4IDQxLjc0ODMgMC4zMzY4NzMgMzguOTU0MUMtMC44MDIxOTIgMzYuMTYgMS4wNDA5NiAzMi43Njc1IDQuNDU0MDYgMzEuMzc2QzUuOTQyMzggMzAuNzY5MiA3LjQ4MzUxIDMwLjY0MjMgOC44NDI3MyAzMC45MjQ4VjBIMTAuODQyN1YzMS43MjY2WiIgZmlsbD0iIzBCMEIwQiIvPgo8L3N2Zz4K", "2": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDUiIGhlaWdodD0iNDIiIHZpZXdCb3g9IjAgMCA0NSA0MiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwLjU2MDUgMzAuNjQwM1YxSDM5LjE3ODhWMzAuNjQwMyIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTEyLjQzMSAzNy4zNzQ3QzEwLjIwODQgMzkuNjgyOCA2LjUyNDgxIDQwLjI2ODggNC4yMDM0NCAzOC42ODM2QzEuODgyMDcgMzcuMDk4NCAxLjgwMTk3IDMzLjk0MjMgNC4wMjQ1MyAzMS42MzQyQzYuMjQ3MDkgMjkuMzI2MSA5LjkzMDY3IDI4Ljc0MDEgMTIuMjUyIDMwLjMyNTNDMTQuNTczNCAzMS45MTA1IDE0LjY1MzUgMzUuMDY2NiAxMi40MzEgMzcuMzc0N1oiIGZpbGw9IiMwQjBCMEIiLz4KPGVsbGlwc2UgY3g9IjUuMDg5NzMiIGN5PSI1LjgwMTczIiByeD0iNS4wODk3MyIgcnk9IjUuODAxNzMiIHRyYW5zZm9ybT0ibWF0cml4KDAuODI1ODIzIDAuNTYzOTI5IC0wLjY5MzYzOCAwLjcyMDMyNCAzNi4wNDg4IDI3LjQ1NTEpIiBmaWxsPSIjMEIwQjBCIi8+Cjwvc3ZnPgo=", "3": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTIiIHZpZXdCb3g9IjAgMCA1MCA1MiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTkgNDNWMTZINDZWNDMiIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPHBhdGggZD0iTTI3LjAwMiAxNkwyNyA0MyIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjEuNSIvPgo8ZWxsaXBzZSBjeD0iMy45MTg3MyIgY3k9IjQuNzA0ODQiIHJ4PSIzLjkxODczIiByeT0iNC43MDQ4NCIgdHJhbnNmb3JtPSJtYXRyaXgoMC44MjU4MjMgMC41NjM5MjkgLTAuNjkzNjM4IDAuNzIwMzI0IDQzLjUyNjQgNDApIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjkxODczIiBjeT0iNC43MDQ4NCIgcng9IjMuOTE4NzMiIHJ5PSI0LjcwNDg0IiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgMjQuNTI2NCA0MCkiIGZpbGw9IiMwQjBCMEIiLz4KPGVsbGlwc2UgY3g9IjMuOTE4NzMiIGN5PSI0LjcwNDg0IiByeD0iMy45MTg3MyIgcnk9IjQuNzA0ODQiIHRyYW5zZm9ybT0ibWF0cml4KDAuODI1ODIzIDAuNTYzOTI5IC0wLjY5MzYzOCAwLjcyMDMyNCA2LjUyNzM0IDQwKSIgZmlsbD0iIzBCMEIwQiIvPgo8cGF0aCBkPSJNMjYuNzQ2MyAxMi4wNzJDMjYuMTM4MyAxMi4wNzIgMjUuNTYyMyAxMS45NzYgMjUuMDE4MyAxMS43ODRDMjQuNDgyMyAxMS41ODQgMjQuMDUwMyAxMS4zMiAyMy43MjIzIDEwLjk5MkwyNC4xNDIzIDEwLjMwOEMyNC40MTQzIDEwLjU4OCAyNC43NzgzIDEwLjgyIDI1LjIzNDMgMTEuMDA0QzI1LjY5ODMgMTEuMTg4IDI2LjIwMjMgMTEuMjggMjYuNzQ2MyAxMS4yOEMyNy40NDIzIDExLjI4IDI3Ljk3NDMgMTEuMTI4IDI4LjM0MjMgMTAuODI0QzI4LjcxODMgMTAuNTIgMjguOTA2MyAxMC4xMTIgMjguOTA2MyA5LjZDMjguOTA2MyA5LjA4OCAyOC43MjIzIDguNjggMjguMzU0MyA4LjM3NkMyNy45OTQzIDguMDcyIDI3LjQyMjMgNy45MiAyNi42MzgzIDcuOTJMMjYuMDM4MyA3LjkyTDI2LjAzODMgNy4yODRMMjguNjMwMyA0LjAzMkwyOC43NTAzIDQuMzY4TDI0LjA3MDMgNC4zNjhMMjQuMDcwMyAzLjZMMjkuNDcwMyAzLjZMMjkuNDcwMyA0LjIxMkwyNi44NzgzIDcuNDY0TDI2LjQ1ODMgNy4xODhMMjYuNzgyMyA3LjE4OEMyNy43OTAzIDcuMTg4IDI4LjU0MjMgNy40MTIgMjkuMDM4MyA3Ljg2QzI5LjU0MjMgOC4zMDggMjkuNzk0MyA4Ljg4NCAyOS43OTQzIDkuNTg4QzI5Ljc5NDMgMTAuMDYgMjkuNjgyMyAxMC40ODQgMjkuNDU4MyAxMC44NkMyOS4yMzQzIDExLjIzNiAyOC44OTQzIDExLjUzMiAyOC40MzgzIDExLjc0OEMyNy45OTAzIDExLjk2NCAyNy40MjYzIDEyLjA3MiAyNi43NDYzIDEyLjA3MloiIGZpbGw9IiMwQjBCMEIiLz4KPC9zdmc+Cg==", "4": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTMiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCA1MyAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTggMjMuMTMzVjAuNUg0OS40OTM4VjIzLjEzMyIgc3Ryb2tlPSIjMEIwQjBCIi8+CjxwYXRoIGQ9Ik0yMS41OTU3IDAuNVYyMy4xMzMiIHN0cm9rZT0iIzBCMEIwQiIvPgo8cGF0aCBkPSJNMzUgMC41VjIzLjEzMyIgc3Ryb2tlPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgNDcuMzA2NiAyMC41KSIgZmlsbD0iIzBCMEIwQiIvPgo8ZWxsaXBzZSBjeD0iMy4wNTY4NiIgY3k9IjMuODI1MTMiIHJ4PSIzLjA1Njg2IiByeT0iMy44MjUxMyIgdHJhbnNmb3JtPSJtYXRyaXgoMC44MjU4MjMgMC41NjM5MjkgLTAuNjkzNjM4IDAuNzIwMzI0IDM0LjMwNjYgMjAuNSkiIGZpbGw9IiMwQjBCMEIiLz4KPGVsbGlwc2UgY3g9IjMuMDU2ODYiIGN5PSIzLjgyNTEzIiByeD0iMy4wNTY4NiIgcnk9IjMuODI1MTMiIHRyYW5zZm9ybT0ibWF0cml4KDAuODI1ODIzIDAuNTYzOTI5IC0wLjY5MzYzOCAwLjcyMDMyNCAxOS4zMDY2IDIwLjUpIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgNS4zMDY2NCAyMC41KSIgZmlsbD0iIzBCMEIwQiIvPgo8cGF0aCBkPSJNOCA2LjVINDkuNSIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTggMS41SDQ5LjUiIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIyIi8+Cjwvc3ZnPgo=", "5": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjgiIGhlaWdodD0iNDYiIHZpZXdCb3g9IjAgMCA2OCA0NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTggMzkuOTk5VjE2Ljk5OUg2M1YzOS45OTkiIHN0cm9rZT0iIzBCMEIwQiIvPgo8cGF0aCBkPSJNMjEuNTk1NyAxNi45OTlWMzkuNjMyIiBzdHJva2U9IiMwQjBCMEIiLz4KPHBhdGggZD0iTTM1IDE2Ljk5OVYzOS42MzIiIHN0cm9rZT0iIzBCMEIwQiIvPgo8cGF0aCBkPSJNNDkgMTYuOTk5VjM4Ljk5OSIgc3Ryb2tlPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgNDcuMzA2NiAzNi45OTkpIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgNjIuMzA2NiAzNi45OTkpIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgMzQuMzA2NiAzNi45OTkpIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgMTkuMzA2NiAzNi45OTkpIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgNS4zMDY2NCAzNi45OTkpIiBmaWxsPSIjMEIwQjBCIi8+CjxwYXRoIGQ9Ik04IDIyLjk5OUg2MyIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTggMTcuOTk5SDYzIiBzdHJva2U9IiMwQjBCMEIiIHN0cm9rZS13aWR0aD0iMiIvPgo8cGF0aCBkPSJNMzUuNzUzNSAxMi4wNzJDMzUuMTUzNSAxMi4wNzIgMzQuNTgxNSAxMS45NzYgMzQuMDM3NSAxMS43ODRDMzMuNDkzNSAxMS41ODQgMzMuMDYxNSAxMS4zMiAzMi43NDE1IDEwLjk5MkwzMy4xNjE1IDEwLjMwOEMzMy40MjU1IDEwLjU4OCAzMy43ODU1IDEwLjgyIDM0LjI0MTUgMTEuMDA0QzM0LjcwNTUgMTEuMTg4IDM1LjIwNTUgMTEuMjggMzUuNzQxNSAxMS4yOEMzNi40NTM1IDExLjI4IDM2Ljk5MzUgMTEuMTI0IDM3LjM2MTUgMTAuODEyQzM3LjczNzUgMTAuNDkyIDM3LjkyNTUgMTAuMDc2IDM3LjkyNTUgOS41NjRDMzcuOTI1NSA5LjIwNCAzNy44Mzc1IDguODk2IDM3LjY2MTUgOC42NEMzNy40OTM1IDguMzc2IDM3LjIwNTUgOC4xNzIgMzYuNzk3NSA4LjAyOEMzNi4zODk1IDcuODg0IDM1LjgyOTUgNy44MTIgMzUuMTE3NSA3LjgxMkwzMy4zMjk1IDcuODEyTDMzLjc2MTUgMy42TDM4LjM1NzUgMy42TDM4LjM1NzUgNC4zNjhMMzQuMTA5NSA0LjM2OEwzNC41NTM1IDMuOTQ4TDM0LjE4MTUgNy40NzZMMzMuNzM3NSA3LjA0NEwzNS4zMDk1IDcuMDQ0QzM2LjE1NzUgNy4wNDQgMzYuODM3NSA3LjE0OCAzNy4zNDk1IDcuMzU2QzM3Ljg2MTUgNy41NjQgMzguMjI5NSA3Ljg1NiAzOC40NTM1IDguMjMyQzM4LjY4NTUgOC42IDM4LjgwMTUgOS4wMzIgMzguODAxNSA5LjUyOEMzOC44MDE1IDEwIDM4LjY4OTUgMTAuNDMyIDM4LjQ2NTUgMTAuODI0QzM4LjI0MTUgMTEuMjA4IDM3LjkwNTUgMTEuNTEyIDM3LjQ1NzUgMTEuNzM2QzM3LjAwOTUgMTEuOTYgMzYuNDQxNSAxMi4wNzIgMzUuNzUzNSAxMi4wNzJaIiBmaWxsPSIjMEIwQjBCIi8+Cjwvc3ZnPgo=", "6": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzMiIGhlaWdodD0iNTQiIHZpZXdCb3g9IjAgMCA3MyA1NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTM5LjA4MTYgMTIuMDcyQzM4LjMzNzYgMTIuMDcyIDM3LjcwOTYgMTEuOTA4IDM3LjE5NzYgMTEuNThDMzYuNjg1NiAxMS4yNDQgMzYuMjk3NiAxMC43NjQgMzYuMDMzNiAxMC4xNEMzNS43Njk2IDkuNTA4IDM1LjYzNzYgOC43NTIgMzUuNjM3NiA3Ljg3MkMzNS42Mzc2IDYuOTIgMzUuNzk3NiA2LjEyNCAzNi4xMTc2IDUuNDg0QzM2LjQ0NTYgNC44MzYgMzYuODk3NiA0LjM0OCAzNy40NzM2IDQuMDJDMzguMDQ5NiAzLjY5MiAzOC43MTc2IDMuNTI4IDM5LjQ3NzYgMy41MjhDMzkuODUzNiAzLjUyOCA0MC4yMTM2IDMuNTY0IDQwLjU1NzYgMy42MzZDNDAuOTAxNiAzLjcwOCA0MS4yMDU2IDMuODI0IDQxLjQ2OTYgMy45ODRMNDEuMTIxNiA0LjY4QzQwLjkwNTYgNC41MzYgNDAuNjU3NiA0LjQzNiA0MC4zNzc2IDQuMzhDNDAuMDk3NiA0LjMxNiAzOS44MDE2IDQuMjg0IDM5LjQ4OTYgNC4yODRDMzguNTg1NiA0LjI4NCAzNy44NjE2IDQuNTcyIDM3LjMxNzYgNS4xNDhDMzYuNzgxNiA1LjcyNCAzNi41MTM2IDYuNTg0IDM2LjUxMzYgNy43MjhDMzYuNTEzNiA3LjkwNCAzNi41MjE2IDguMTI0IDM2LjUzNzYgOC4zODhDMzYuNTYxNiA4LjY0NCAzNi42MDk2IDguOSAzNi42ODE2IDkuMTU2TDM2LjM4MTYgOC45MjhDMzYuNDY5NiA4LjUxMiAzNi42NDE2IDguMTYgMzYuODk3NiA3Ljg3MkMzNy4xNTM2IDcuNTc2IDM3LjQ3MzYgNy4zNTIgMzcuODU3NiA3LjJDMzguMjQxNiA3LjA0OCAzOC42NjE2IDYuOTcyIDM5LjExNzYgNi45NzJDMzkuNjc3NiA2Ljk3MiA0MC4xNjk2IDcuMDc2IDQwLjU5MzYgNy4yODRDNDEuMDE3NiA3LjQ5MiA0MS4zNDk2IDcuNzg0IDQxLjU4OTYgOC4xNkM0MS44Mjk2IDguNTM2IDQxLjk0OTYgOC45OCA0MS45NDk2IDkuNDkyQzQxLjk0OTYgMTAuMDEyIDQxLjgyNTYgMTAuNDY4IDQxLjU3NzYgMTAuODZDNDEuMzI5NiAxMS4yNDQgNDAuOTg1NiAxMS41NDQgNDAuNTQ1NiAxMS43NkM0MC4xMTM2IDExLjk2OCAzOS42MjU2IDEyLjA3MiAzOS4wODE2IDEyLjA3MlpNMzkuMDQ1NiAxMS4zNEMzOS40NDU2IDExLjM0IDM5Ljc5NzYgMTEuMjY4IDQwLjEwMTYgMTEuMTI0QzQwLjQxMzYgMTAuOTcyIDQwLjY1NzYgMTAuNzYgNDAuODMzNiAxMC40ODhDNDEuMDA5NiAxMC4yMDggNDEuMDk3NiA5Ljg4NCA0MS4wOTc2IDkuNTE2QzQxLjA5NzYgOC45NjQgNDAuOTA1NiA4LjUyNCA0MC41MjE2IDguMTk2QzQwLjE0NTYgNy44NjggMzkuNjMzNiA3LjcwNCAzOC45ODU2IDcuNzA0QzM4LjU1MzYgNy43MDQgMzguMTc3NiA3Ljc4NCAzNy44NTc2IDcuOTQ0QzM3LjUzNzYgOC4xMDQgMzcuMjg1NiA4LjMyNCAzNy4xMDE2IDguNjA0QzM2LjkxNzYgOC44NzYgMzYuODI1NiA5LjE4OCAzNi44MjU2IDkuNTRDMzYuODI1NiA5Ljg0NCAzNi45MDk2IDEwLjEzNiAzNy4wNzc2IDEwLjQxNkMzNy4yNDU2IDEwLjY4OCAzNy40OTM2IDEwLjkxMiAzNy44MjE2IDExLjA4OEMzOC4xNTc2IDExLjI1NiAzOC41NjU2IDExLjM0IDM5LjA0NTYgMTEuMzRaIiBmaWxsPSIjMEIwQjBCIi8+CjxwYXRoIGQ9Ik03LjI1MDk4IDQ1LjkyMVYxOC4xMjdINzAuMDg5N1Y0NS45MjEiIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIwLjUiLz4KPHBhdGggZD0iTTE5LjYyNiAxOC4xMjdWNDUuNDc3NSIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjAuNSIvPgo8cGF0aCBkPSJNMzIuMzgwOSAxOC4xMjdWNDUuNDc3NSIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjAuNSIvPgo8cGF0aCBkPSJNNDUuMTM3NyAxOC4xMjdWNDUuNDc3NSIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjAuNSIvPgo8cGF0aCBkPSJNNTcuODk0NSAxOC4xMjdWNDUuNDc3NSIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjAuNSIvPgo8ZWxsaXBzZSBjeD0iMy4yMzY1OSIgY3k9IjQuMjI2NjciIHJ4PSIzLjIzNjU5IiByeT0iNC4yMjY2NyIgdHJhbnNmb3JtPSJtYXRyaXgoMC43NjUzMzUgMC42NDM2MzIgLTAuNjE1OTY3IDAuNzg3NzcyIDQyLjY2ODkgNDIuMjk0OSkiIGZpbGw9IiMwQjBCMEIiLz4KPGVsbGlwc2UgY3g9IjMuMjM2NTkiIGN5PSI0LjIyNjY3IiByeD0iMy4yMzY1OSIgcnk9IjQuMjI2NjciIHRyYW5zZm9ybT0ibWF0cml4KDAuNzY1MzM1IDAuNjQzNjMyIC0wLjYxNTk2NyAwLjc4Nzc3MiA1NS45NjA5IDQyLjI5NDkpIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjIzNjU5IiBjeT0iNC4yMjY2NyIgcng9IjMuMjM2NTkiIHJ5PSI0LjIyNjY3IiB0cmFuc2Zvcm09Im1hdHJpeCgwLjc2NTMzNSAwLjY0MzYzMiAtMC42MTU5NjcgMC43ODc3NzIgNjguMDQ1OSA0Mi4yOTQ5KSIgZmlsbD0iIzBCMEIwQiIvPgo8ZWxsaXBzZSBjeD0iMy4yMzY1OSIgY3k9IjQuMjI2NjciIHJ4PSIzLjIzNjU5IiByeT0iNC4yMjY2NyIgdHJhbnNmb3JtPSJtYXRyaXgoMC43NjUzMzUgMC42NDM2MzIgLTAuNjE1OTY3IDAuNzg3NzcyIDI5LjM3NiA0Mi4yOTQ5KSIgZmlsbD0iIzBCMEIwQiIvPgo8ZWxsaXBzZSBjeD0iMy4yMzY1OSIgY3k9IjQuMjI2NjciIHJ4PSIzLjIzNjU5IiByeT0iNC4yMjY2NyIgdHJhbnNmb3JtPSJtYXRyaXgoMC43NjUzMzUgMC42NDM2MzIgLTAuNjE1OTY3IDAuNzg3NzcyIDE3LjI5MSA0Mi4yOTQ5KSIgZmlsbD0iIzBCMEIwQiIvPgo8ZWxsaXBzZSBjeD0iMy4yMzY1OSIgY3k9IjQuMjI2NjciIHJ4PSIzLjIzNjU5IiByeT0iNC4yMjY2NyIgdHJhbnNmb3JtPSJtYXRyaXgoMC43NjUzMzUgMC42NDM2MzIgLTAuNjE1OTY3IDAuNzg3NzcyIDUuMjA3MDMgNDIuMjk0OSkiIGZpbGw9IiMwQjBCMEIiLz4KPHBhdGggZD0iTTcuMjUwOTggMjUuMzc3SDcwLjA4OTciIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxwYXRoIGQ9Ik03LjI1MDk4IDE5LjMzNUg3MC4wODk3IiBzdHJva2U9IiMwQjBCMEIiIHN0cm9rZS13aWR0aD0iNCIvPgo8L3N2Zz4K", "7": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzMiIGhlaWdodD0iNTQiIHZpZXdCb3g9IjAgMCA3MyA1NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTM3LjIzNjcgMTJMNDAuODYwNyAzLjk4NEw0MS4xMjQ3IDQuMzY4TDM1LjkyODcgNC4zNjhMMzYuMzcyNyAzLjk0OEwzNi4zNzI3IDUuOTRMMzUuNTIwNyA1Ljk0TDM1LjUyMDcgMy42TDQxLjY4ODcgMy42TDQxLjY4ODcgNC4yMTJMMzguMTcyNyAxMkwzNy4yMzY3IDEyWiIgZmlsbD0iIzBCMEIwQiIvPgo8cGF0aCBkPSJNNy4yNTA5OCA0NS45MjFWMTguMTI3SDcwLjA4OTdWNDUuOTIxIiBzdHJva2U9IiMwQjBCMEIiIHN0cm9rZS13aWR0aD0iMC41Ii8+CjxwYXRoIGQ9Ik0xOS42MjYgMTguMTI3VjQ1LjQ3NzUiIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIwLjUiLz4KPHBhdGggZD0iTTMyLjM4MDkgMTguMTI3VjQ1LjQ3NzUiIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIwLjUiLz4KPHBhdGggZD0iTTQ1LjEzNzcgMTguMTI3VjQ1LjQ3NzUiIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIwLjUiLz4KPHBhdGggZD0iTTU3Ljg5NDUgMTguMTI3VjQ1LjQ3NzUiIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIwLjUiLz4KPGVsbGlwc2UgY3g9IjMuMjM2NTkiIGN5PSI0LjIyNjY3IiByeD0iMy4yMzY1OSIgcnk9IjQuMjI2NjciIHRyYW5zZm9ybT0ibWF0cml4KDAuNzY1MzM1IDAuNjQzNjMyIC0wLjYxNTk2NyAwLjc4Nzc3MiA0Mi42Njg5IDQyLjI5NDkpIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjIzNjU5IiBjeT0iNC4yMjY2NyIgcng9IjMuMjM2NTkiIHJ5PSI0LjIyNjY3IiB0cmFuc2Zvcm09Im1hdHJpeCgwLjc2NTMzNSAwLjY0MzYzMiAtMC42MTU5NjcgMC43ODc3NzIgNTUuOTYwOSA0Mi4yOTQ5KSIgZmlsbD0iIzBCMEIwQiIvPgo8ZWxsaXBzZSBjeD0iMy4yMzY1OSIgY3k9IjQuMjI2NjciIHJ4PSIzLjIzNjU5IiByeT0iNC4yMjY2NyIgdHJhbnNmb3JtPSJtYXRyaXgoMC43NjUzMzUgMC42NDM2MzIgLTAuNjE1OTY3IDAuNzg3NzcyIDY4LjA0NTkgNDIuMjk0OSkiIGZpbGw9IiMwQjBCMEIiLz4KPGVsbGlwc2UgY3g9IjMuMjM2NTkiIGN5PSI0LjIyNjY3IiByeD0iMy4yMzY1OSIgcnk9IjQuMjI2NjciIHRyYW5zZm9ybT0ibWF0cml4KDAuNzY1MzM1IDAuNjQzNjMyIC0wLjYxNTk2NyAwLjc4Nzc3MiAyOS4zNzYgNDIuMjk0OSkiIGZpbGw9IiMwQjBCMEIiLz4KPGVsbGlwc2UgY3g9IjMuMjM2NTkiIGN5PSI0LjIyNjY3IiByeD0iMy4yMzY1OSIgcnk9IjQuMjI2NjciIHRyYW5zZm9ybT0ibWF0cml4KDAuNzY1MzM1IDAuNjQzNjMyIC0wLjYxNTk2NyAwLjc4Nzc3MiAxNy4yOTEgNDIuMjk0OSkiIGZpbGw9IiMwQjBCMEIiLz4KPGVsbGlwc2UgY3g9IjMuMjM2NTkiIGN5PSI0LjIyNjY3IiByeD0iMy4yMzY1OSIgcnk9IjQuMjI2NjciIHRyYW5zZm9ybT0ibWF0cml4KDAuNzY1MzM1IDAuNjQzNjMyIC0wLjYxNTk2NyAwLjc4Nzc3MiA1LjIwNzAzIDQyLjI5NDkpIiBmaWxsPSIjMEIwQjBCIi8+CjxwYXRoIGQ9Ik03LjI1MDk4IDI1LjM3N0g3MC4wODk3IiBzdHJva2U9IiMwQjBCMEIiIHN0cm9rZS13aWR0aD0iMiIvPgo8cGF0aCBkPSJNNy4yNTA5OCAxOS4zMzVINzAuMDg5NyIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjQiLz4KPC9zdmc+Cg==", "8": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTMiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCA1MyAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTggMjMuMTMzVjAuNUg0OS40OTM4VjIzLjEzMyIgc3Ryb2tlPSIjMEIwQjBCIi8+CjxwYXRoIGQ9Ik0yMS41OTU3IDAuNVYyMy4xMzMiIHN0cm9rZT0iIzBCMEIwQiIvPgo8cGF0aCBkPSJNMzUgMC41VjIzLjEzMyIgc3Ryb2tlPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgNDcuMzA2NiAyMC41KSIgZmlsbD0iIzBCMEIwQiIvPgo8ZWxsaXBzZSBjeD0iMy4wNTY4NiIgY3k9IjMuODI1MTMiIHJ4PSIzLjA1Njg2IiByeT0iMy44MjUxMyIgdHJhbnNmb3JtPSJtYXRyaXgoMC44MjU4MjMgMC41NjM5MjkgLTAuNjkzNjM4IDAuNzIwMzI0IDM0LjMwNjYgMjAuNSkiIGZpbGw9IiMwQjBCMEIiLz4KPGVsbGlwc2UgY3g9IjMuMDU2ODYiIGN5PSIzLjgyNTEzIiByeD0iMy4wNTY4NiIgcnk9IjMuODI1MTMiIHRyYW5zZm9ybT0ibWF0cml4KDAuODI1ODIzIDAuNTYzOTI5IC0wLjY5MzYzOCAwLjcyMDMyNCAxOS4zMDY2IDIwLjUpIiBmaWxsPSIjMEIwQjBCIi8+CjxlbGxpcHNlIGN4PSIzLjA1Njg2IiBjeT0iMy44MjUxMyIgcng9IjMuMDU2ODYiIHJ5PSIzLjgyNTEzIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjgyNTgyMyAwLjU2MzkyOSAtMC42OTM2MzggMC43MjAzMjQgNS4zMDY2NCAyMC41KSIgZmlsbD0iIzBCMEIwQiIvPgo8cGF0aCBkPSJNOCA2LjVINDkuNSIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTggMS41SDQ5LjUiIHN0cm9rZT0iIzBCMEIwQiIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxwYXRoIGQ9Ik04IDExLjVINDkuNSIgc3Ryb2tlPSIjMEIwQjBCIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+Cg=="};
+
+// ===========================================================================
+//  Modell
+// ===========================================================================
+// Egy lépés = egy pattern + hányszor menjen le + hány ütem alatt ússzon át az
+// előzőből. A slide 0 értéke kemény vágás. A hangok slot + eltérés%-ban élnek,
+// így a rács változásakor is értelmezhetők maradnak.
+let steps=[], cur=0, seq=1;
+const newStep=(o={})=>Object.assign({id:seq++,bpm:80,beats:4,subdiv:4,
+  notes:[],groups:[],repeat:3,slide:1},o);
+const clone=s=>newStep({bpm:s.bpm,beats:s.beats,subdiv:s.subdiv,repeat:s.repeat,slide:s.slide,
+  notes:s.notes.map(n=>({...n})),groups:s.groups.map(g=>({...g}))});
+const step=()=>steps[cur];
+const totalSlots=s=>s.beats*Math.max(1,s.subdiv);
+
+// ===========================================================================
+//  Geometria
+// ===========================================================================
+const BASE=-Math.PI/2, PULSE_MS=170, OUTER_FIT=1.45, APPBG='#90A9A9';
+const norm2pi=a=>{const t=a%(Math.PI*2);return t<0?t+Math.PI*2:t};
+const shortest=(a,b)=>{let d=norm2pi(a)-norm2pi(b);if(d>Math.PI)d-=Math.PI*2;if(d<-Math.PI)d+=Math.PI*2;return d};
+const groupHue=n=>(n*47+15)%360;
+function geom(size,zoom,s){
+  const R=(size/2)/OUTER_FIT*(zoom??1), sc=R/179, total=totalSlots(s);
+  return {cx:size/2,cy:size/2,R,s:sc,total,stepA:Math.PI*2/total,bandW:54*sc};
+}
+const slotAngleOf=(g,i)=>BASE+i*g.stepA;
+const slotOf=(g,a)=>((Math.round((a-BASE)/g.stepA)%g.total)+g.total)%g.total;
+const noteAngle=(g,n)=>slotAngleOf(g,n.slot)+(n.off/100)*g.stepA;
+
+// ===========================================================================
+//  Átúszás két tagolás között (a helycserés animáció)
+// ===========================================================================
+function bestAssignment(A,B,cost){
+  const n=Math.min(A.length,B.length);
+  if(!n)return [];
+  if(A.length>8||B.length>8){
+    // globálisan mohó: a legolcsóbb párokat vesszük elsőként. A soronként mohó
+    // változat itt is láncreakciót indítana, mint a csoportoknál.
+    const cand=[];
+    for(const a of A)for(const b of B)cand.push([cost(a,b),a,b]);
+    cand.sort((x,y)=>x[0]-y[0]);
+    const ua=new Set(),ub=new Set(),out=[];
+    for(const [,a,b] of cand){
+      if(ua.has(a)||ub.has(b))continue;
+      ua.add(a);ub.add(b);out.push([a,b]);
+      if(out.length===n)break;
+    }
+    return out;
+  }
+  let best=[],bestC=Infinity;const usedB=new Set(),acc=[];
+  const pick=(i,c)=>{
+    if(c>=bestC)return;
+    if(acc.length===n){best=acc.map(p=>[...p]);bestC=c;return}
+    if(i>=A.length)return;
+    for(let j=0;j<B.length;j++){
+      if(usedB.has(j))continue;
+      usedB.add(j);acc.push([A[i],B[j]]);
+      pick(i+1,c+cost(A[i],B[j]));
+      acc.pop();usedB.delete(j);
+    }
+    if(A.length-i-1>=n-acc.length)pick(i+1,c);
+  };
+  pick(0,0);return best;
+}
+// A legkisebb ÖSSZmozgású párosítás kell: az azonos hosszú csoportok
+// felcserélhetők, ezért a mohó „legközelebbi" választás láncreakciót indítana,
+// és egy helycsere helyett az összes csoport elindulna körbe.
+function matchGroups(from,to,total){
+  const cyc=d=>{let v=((d%total)+total)%total;return v>total/2?v-total:v};
+  const pairs=[],usedF=new Set(),usedT=new Set();
+  for(const L of new Set(to.map(g=>g.len))){
+    const fi=from.map((_,i)=>i).filter(i=>from[i].len===L&&!usedF.has(i));
+    const ti=to.map((_,i)=>i).filter(i=>to[i].len===L&&!usedT.has(i));
+    for(const [a,b] of bestAssignment(fi,ti,(a,b)=>Math.abs(cyc(to[b].start-from[a].start)))){
+      usedF.add(a);usedT.add(b);pairs.push({f:from[a],t:to[b]});
+    }
+  }
+  const fR=from.map((_,i)=>i).filter(i=>!usedF.has(i)),tR=to.map((_,i)=>i).filter(i=>!usedT.has(i));
+  for(const [a,b] of bestAssignment(fR,tR,(a,b)=>Math.abs(cyc(to[b].start-from[a].start)))){
+    usedF.add(a);usedT.add(b);pairs.push({f:from[a],t:to[b]});
+  }
+  for(let i=0;i<from.length;i++)if(!usedF.has(i))pairs.push({f:from[i],t:null});
+  for(let i=0;i<to.length;i++)if(!usedT.has(i))pairs.push({f:null,t:to[i]});
+  return pairs;
+}
+// A hang a csoportjával megy: ugyanazt az eltolást kapja, mint a kapszula.
+function slideState(sec,u,total){
+  const e=u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
+  const cyc=d=>{let v=((d%total)+total)%total;return v>total/2?v-total:v};
+  const rel=(slot,g)=>((slot-g.start)%total+total)%total;
+  const inG=(g,slot)=>rel(slot,g)<g.len;
+  const groups=[],notes=[];
+  for(const p of matchGroups(sec.from.groups,sec.to.groups,total)){
+    if(p.f&&p.t){
+      const d=cyc(p.t.start-p.f.start);
+      groups.push({startF:p.f.start+d*e,lenF:p.f.len+(p.t.len-p.f.len)*e,alpha:1});
+      const fn=sec.from.notes.filter(n=>inG(p.f,n.slot));
+      const tn=sec.to.notes.filter(n=>inG(p.t,n.slot));
+      for(const n of fn){
+        const k=rel(n.slot,p.f),m=tn.find(x=>rel(x.slot,p.t)===k);
+        notes.push({slotF:n.slot+d*e,accent:m?(n.accent||m.accent):n.accent,
+          off:n.off+((m?m.off:n.off)-n.off)*e,alpha:m?1:1-e});
+      }
+      for(const n of tn){
+        const k=rel(n.slot,p.t);
+        if(!fn.some(x=>rel(x.slot,p.f)===k))notes.push({slotF:n.slot,accent:n.accent,off:n.off,alpha:e});
+      }
+    }else{
+      const g=p.f||p.t,a=p.f?1-e:e,src=p.f?sec.from.notes:sec.to.notes;
+      groups.push({startF:g.start,lenF:g.len,alpha:a});
+      for(const n of src.filter(n=>inG(g,n.slot)))
+        notes.push({slotF:n.slot,accent:n.accent,off:n.off,alpha:a});
+    }
+  }
+  // A csoporton kívüli hangok is végigvándorolnak az átmenet alatt, nem csak a
+  // csoportba tartozók. A párosítás a tényleges helyük (slot + eltérés) szerint
+  // a legkisebb összmozgást keresi, és az OFF-GRID ELTÉRÉS is átalakul közben.
+  // Enélkül a szabad hang az egész átúszás alatt a régi helyén és régi
+  // százalékán állna, majd a szakaszhatáron ugrana — épp az a mozgás maradna ki,
+  // amiért az átúszás készült.
+  const free=(list,gs)=>list.filter(n=>!gs.some(g=>inG(g,n.slot)));
+  const fF=free(sec.from.notes,sec.from.groups),tF=free(sec.to.notes,sec.to.groups);
+  const pos=n=>n.slot+n.off/100;
+  const uF=new Set(),uT=new Set();
+  for(const [a,b] of bestAssignment(fF.map((_,i)=>i),tF.map((_,i)=>i),
+      (a,b)=>Math.abs(cyc(pos(tF[b])-pos(fF[a]))))){
+    uF.add(a);uT.add(b);
+    const f=fF[a],t=tF[b];
+    notes.push({slotF:f.slot+cyc(t.slot-f.slot)*e,   // a slot a rövidebb úton megy
+      accent:f.accent||t.accent,
+      off:f.off+(t.off-f.off)*e,                     // az eltérés lineárisan alakul át
+      alpha:1});
+  }
+  fF.forEach((n,i)=>{if(!uF.has(i))notes.push({slotF:n.slot,accent:n.accent,off:n.off,alpha:1-e})});
+  tF.forEach((n,i)=>{if(!uT.has(i))notes.push({slotF:n.slot,accent:n.accent,off:n.off,alpha:e})});
+  return {groups,notes};
+}
+
+// ===========================================================================
+//  Rajzolás
+// ===========================================================================
+// Két eltérés az apphoz képest:
+//  1. nincs háttér, ezért a jelölők körüli rést destination-out vágja ki — így
+//     valódi lyuk lesz az alfán, nem háttérszínű folt;
+//  2. az idő a képkocka sorszámából jön, nem az óráról, tehát determinisztikus.
+// A maszk-menetben (opt.mask) minden átlátszóság 1-re ugrik és a kivágás elmarad:
+// ebből lesz a videóhoz a tömör sziluett, amit kulcsozni lehet.
+let MASK=false;
+const rgba=(r,g,b,a)=>`rgba(${r},${g},${b},${MASK?1:a})`;
+const hsla=(h,s,l,a)=>`hsla(${h},${s}%,${l}%,${MASK?1:a})`;
+
+function capsulePath(ctx,cx,cy,R,h,a1,a2){
+  ctx.beginPath();
+  ctx.arc(cx,cy,R+h,a1,a2);
+  ctx.arc(cx+Math.cos(a2)*R,cy+Math.sin(a2)*R,h,a2,a2+Math.PI);
+  ctx.arc(cx,cy,R-h,a2,a1,true);
+  ctx.arc(cx+Math.cos(a1)*R,cy+Math.sin(a1)*R,h,a1+Math.PI,a1+Math.PI*2);
+  ctx.closePath();
+}
+function sectionAt(plan,t){
+  const S=plan.sections;
+  for(let i=0;i<S.length;i++)if(t<S[i].t0+S[i].dur-1e-9)return S[i];
+  return S[S.length-1]||null;
+}
+function lastPass(sec,t,phase01){
+  const k=Math.floor((t-sec.t0-phase01*sec.barDur)/sec.barDur+1e-9);
+  if(k<0)return -Infinity;
+  const at=sec.t0+(phase01+k)*sec.barDur;
+  return at>t+1e-9?-Infinity:at;
+}
+
+// Egy állapot kirajzolása. `st` = {beats,subdiv,groups:[{startF,lenF,alpha}],
+// notes:[{slotF,accent,off,alpha}]}, `head` = a playhead szöge (vagy null).
+function drawRing(ctx,size,st,head,beatPulseFn,notePulseFn,opt){
+  const g=geom(size,opt.zoom,st), {cx,cy,R,s,total,stepA,bandW}=g;
+  const slotA=i=>BASE+i*stepA;
+  const beats=st.beats,subdiv=Math.max(1,st.subdiv);
+
+  const notes=st.notes.map(n=>{
+    const root=slotA(n.slotF), angle=root+(n.off/100)*stepA;
+    return {...n,root,angle};
+  });
+  const chord=total>1?2*R*Math.sin(Math.PI/total):Infinity;
+  let gap=chord;
+  if(notes.length>1){
+    const as=notes.map(n=>norm2pi(n.angle)).sort((u,v)=>u-v);
+    for(let i=0;i<as.length;i++){
+      const nx=i+1<as.length?as[i+1]:as[0]+Math.PI*2,d=nx-as[i];
+      if(d>1e-3)gap=Math.min(gap,2*R*Math.sin(d/2));
+    }
+  }
+  const nr=Math.max(4*s,Math.min(28*s,gap*.46));
+  const mr={sub:Math.min(16*s,chord*.34),beat:Math.min(30*s,chord*.50)};
+  const bp=i=>beatPulseFn?beatPulseFn(i):1;
+
+  // sáv + jelölők egyetlen sziluettként
+  ctx.beginPath();
+  ctx.arc(cx,cy,R+bandW/2,0,Math.PI*2);ctx.arc(cx,cy,R-bandW/2,0,Math.PI*2,true);
+  for(let i=0;i<total;i++){
+    const a=slotA(i),isBeat=i%subdiv===0,rr=isBeat?mr.beat*bp(i/subdiv):mr.sub;
+    const mx=cx+Math.cos(a)*R,my=cy+Math.sin(a)*R;
+    if(isBeat){
+      const d=rr*1.5,phi=Math.acos(rr/d);
+      ctx.moveTo(mx+Math.cos(a+phi)*rr,my+Math.sin(a+phi)*rr);
+      ctx.arc(mx,my,rr,a+phi,a-phi);
+      ctx.lineTo(mx+Math.cos(a)*d,my+Math.sin(a)*d);ctx.closePath();
+    }else{ctx.moveTo(mx+rr,my);ctx.arc(mx,my,rr,0,Math.PI*2)}
+  }
+  ctx.fillStyle=rgba(255,255,255,opt.groupMode?.20:.13);ctx.fill();
+
+  // idő-impulzus
+  if(opt.trail&&head!=null){
+    const hairs=240,hs=Math.PI*2/hairs,hr1=R-bandW*.46,hr2=R+bandW*.46,TRAIL=Math.PI*.42,B=12;
+    const inT=[];
+    for(let i=0;i<hairs;i++){const u=norm2pi(head-i*hs)/TRAIL;if(u<1)inT.push([i,u])}
+    ctx.lineWidth=Math.max(1,1.6*s);ctx.lineCap='butt';
+    for(let b=0;b<B;b++){
+      const u0=b/B,u1=(b+1)/B;
+      ctx.strokeStyle=rgba(255,255,255,+(.95*Math.pow(1-(u0+u1)/2,1.7)).toFixed(3));
+      ctx.beginPath();let any=false;
+      for(const [i,u] of inT){
+        if(u<u0||u>=u1)continue;
+        const a=i*hs;
+        ctx.moveTo(cx+Math.cos(a)*hr1,cy+Math.sin(a)*hr1);
+        ctx.lineTo(cx+Math.cos(a)*hr2,cy+Math.sin(a)*hr2);any=true;
+      }
+      if(any)ctx.stroke();
+    }
+  }
+
+  // a jelölők körüli rés — a maszkban nem vágunk, ott tömör a gyűrű
+  if(!MASK){
+    ctx.save();ctx.globalCompositeOperation='destination-out';
+    ctx.lineWidth=3*s;ctx.strokeStyle='#000';
+    for(let i=0;i<total;i++){
+      const a=slotA(i),rr=i%subdiv===0?mr.beat*bp(i/subdiv):mr.sub;
+      ctx.beginPath();ctx.arc(cx+Math.cos(a)*R,cy+Math.sin(a)*R,rr,0,Math.PI*2);ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  if(opt.numbers)for(let b=0;b<beats;b++){
+    const pb=bp(b),a=slotA(b*subdiv),lr=R+60*s;
+    ctx.font=`italic 900 ${Math.round(19*s*pb)}px Montserrat, sans-serif`;
+    ctx.fillStyle=rgba(255,255,255,Math.min(1,.92+(pb-1)*1.2));
+    ctx.fillText(String(b+1),cx+Math.cos(a)*lr,cy+Math.sin(a)*lr);
+  }
+
+  // csoportok
+  const capH=Math.max(bandW*.42,nr+5*s);
+  const headSlot=head==null?-1:((Math.round(norm2pi(head-BASE)/stepA)%total)+total)%total;
+  ctx.lineCap='butt';
+  for(const gr of st.groups){
+    const gs=Math.round(gr.startF),gl=Math.round(gr.lenF);
+    const live=!opt.noLive&&headSlot>=0&&((headSlot-gs)%total+total)%total<gl;
+    const hue=groupHue(gl),al=(live?.95:.58)*gr.alpha,ch=live?capH*1.06:capH;
+    const a1=slotA(gr.startF),a2=slotA(gr.startF+gr.lenF-1);
+    ctx.lineWidth=(live?2.0:1.4)*s;
+    ctx.strokeStyle=hsla(hue,52,24,al);
+    ctx.fillStyle=hsla(hue,58,72,(live?.44:.24)*gr.alpha);
+    if(gl>=total){
+      ctx.beginPath();ctx.arc(cx,cy,R+ch,0,Math.PI*2);ctx.arc(cx,cy,R-ch,0,Math.PI*2,true);ctx.fill();
+      ctx.beginPath();ctx.arc(cx,cy,R+ch,0,Math.PI*2);ctx.stroke();
+      ctx.beginPath();ctx.arc(cx,cy,R-ch,0,Math.PI*2);ctx.stroke();
+    }else{capsulePath(ctx,cx,cy,R,ch,a1,a2);ctx.fill();ctx.stroke()}
+    if(opt.counts){
+      const mid=gl>=total?slotA(0):(a1+a2)/2,lr=R-ch-14*s;
+      ctx.font=`900 ${Math.round(15*s*(live?1.06:1))}px Montserrat, sans-serif`;
+      ctx.fillStyle=hsla(hue,60,20,al);
+      ctx.fillText(String(gl),cx+Math.cos(mid)*lr,cy+Math.sin(mid)*lr);
+    }
+  }
+
+  // off-grid nyom
+  const devs=notes.filter(n=>Math.abs(n.off)>1e-6);
+  if(devs.length){
+    ctx.lineCap='round';ctx.lineWidth=bandW*.34;
+    for(const n of devs){
+      const d=n.angle-n.root;
+      ctx.strokeStyle=rgba(11,11,11,.13*n.alpha);
+      ctx.beginPath();ctx.arc(cx,cy,R,n.root,n.root+d,d<0);ctx.stroke();
+    }
+  }
+  // hangok
+  for(const n of notes){
+    const p=notePulseFn?notePulseFn(n):0, scale=1+(n.accent?.40:.30)*p*p;
+    const x=cx+Math.cos(n.angle)*R,y=cy+Math.sin(n.angle)*R;
+    ctx.beginPath();
+    ctx.fillStyle=n.accent?rgba(220,40,40,.98*n.alpha):rgba(0,0,0,.96*n.alpha);
+    ctx.arc(x,y,nr*scale,0,Math.PI*2);ctx.fill();
+  }
+  // a negyedek fehér körvonala a hangok FÖLÖTT
+  ctx.lineWidth=Math.max(1,1.6*s);
+  for(let b=0;b<beats;b++){
+    const pb=bp(b),rr=mr.beat*pb,d=rr*1.5,ab=slotA(b*subdiv);
+    const phi=Math.acos(rr/d),mx=cx+Math.cos(ab)*R,my=cy+Math.sin(ab)*R;
+    ctx.strokeStyle=rgba(255,255,255,Math.min(1,.62+(pb-1)*1.6));
+    ctx.beginPath();ctx.moveTo(mx+Math.cos(ab+phi)*rr,my+Math.sin(ab+phi)*rr);
+    ctx.arc(mx,my,rr,ab+phi,ab-phi);ctx.lineTo(mx+Math.cos(ab)*d,my+Math.sin(ab)*d);
+    ctx.closePath();ctx.stroke();
+  }
+  if(opt.dev&&devs.length){
+    ctx.font=`800 ${Math.round(11*s)}px Montserrat, sans-serif`;
+    for(const n of devs){
+      const x=cx+Math.cos(n.angle)*R,y=cy+Math.sin(n.angle)*R,br=Math.max(nr*.78,18*s);
+      const pct=Math.round(n.off);
+      ctx.fillStyle=rgba(11,11,11,.34*n.alpha);
+      ctx.beginPath();ctx.arc(x,y,br,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=rgba(255,255,255,.62*n.alpha);
+      ctx.fillText(`${pct>0?'+':''}${pct}%`,x,y);
+    }
+  }
+  return {g,nr,capH};
+}
+
+function renderFrame(ctx,size,plan,t,opt){
+  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,size,size);
+  const sec=sectionAt(plan,t);if(!sec)return;
+  const total=sec.beats*Math.max(1,sec.subdiv);
+  const isSlide=sec.kind==='slide';
+  const st=isSlide
+    ? Object.assign({beats:sec.beats,subdiv:sec.subdiv},
+        slideState(sec,Math.min(1,Math.max(0,(t-sec.t0)/sec.dur)),total))
+    : {beats:sec.beats,subdiv:sec.subdiv,
+       groups:sec.groups.map(g=>({startF:g.start,lenF:g.len,alpha:1})),
+       notes:sec.notes.map(n=>({slotF:n.slot,accent:n.accent,off:n.off,alpha:1}))};
+  const local=t-sec.t0, beatPos=(local/(60/sec.bpm))%sec.beats;
+  const head=BASE+beatPos*(Math.PI*2/sec.beats);
+  const pulse=at=>{const u=(t-at)*1000/PULSE_MS;return u>=0&&u<1?1-u:0};
+  const beatPulse=b=>1+.20*Math.pow(pulse(lastPass(sec,t,b/sec.beats)),2);
+  // a csúszás üteme alatt a lerakott hangok némák, ezért nem is pulzálnak
+  const notePulse=n=>{
+    if(isSlide)return 0;
+    const ang=BASE+n.slotF*(Math.PI*2/total)+(n.off/100)*(Math.PI*2/total);
+    return pulse(lastPass(sec,t,norm2pi(ang-BASE)/(Math.PI*2)));
+  };
+  drawRing(ctx,size,st,head,beatPulse,notePulse,Object.assign({noLive:isSlide},opt));
+}
+
+// ===========================================================================
+//  Szekvencia -> lejátszási terv
+// ===========================================================================
+function buildPlan(){
+  const sections=[],warn=[];
+  steps.forEach((s,i)=>{
+    const tot=totalSlots(s);
+    const notes=s.notes.filter(n=>n.slot<tot).map(n=>({...n}));
+    const groups=s.groups.filter(g=>g.start+g.len<=tot).map(g=>({...g}));
+    if(i>0&&s.slide>0){
+      const p=steps[i-1];
+      if(p.beats!==s.beats||p.subdiv!==s.subdiv)
+        warn.push(`${i+1}. lépés: a rács változik (${p.beats}/${p.subdiv} → ${s.beats}/${s.subdiv}), `
+          +`ezért az átúszás helyett vágás lesz`);
+      else sections.push({kind:'slide',bpm:s.bpm,beats:s.beats,subdiv:s.subdiv,bars:s.slide,
+        from:{notes:p.notes.filter(n=>n.slot<tot).map(n=>({...n})),
+              groups:p.groups.filter(g=>g.start+g.len<=tot).map(g=>({...g}))},
+        to:{notes:notes.map(n=>({...n})),groups:groups.map(g=>({...g}))},
+        notes:[],groups:[]});
+    }
+    sections.push({kind:'play',bpm:s.bpm,beats:s.beats,subdiv:s.subdiv,bars:s.repeat,notes,groups});
+  });
+  let t=0;
+  for(const s of sections){s.barDur=s.beats*60/s.bpm;s.t0=t;s.dur=s.bars*s.barDur;t+=s.dur}
+  return {sections,duration:t,warnings:warn};
+}
+
+// ===========================================================================
+//  Szöveges forgatókönyv (mentéshez / betöltéshez)
+// ===========================================================================
+function toScript(){
+  const out=['# Macronome szekvencia'];let pb=null,pg=null,ps=null;
+  steps.forEach((s,i)=>{
+    out.push('');
+    if(s.bpm!==pb){out.push(`BPM ${s.bpm}`);pb=s.bpm}
+    if(s.beats!==pg||s.subdiv!==ps){out.push(`TIME ${s.beats}/4  SUB ${s.subdiv}`);pg=s.beats;ps=s.subdiv}
+    out.push(s.notes.length
+      ? 'NOTES '+s.notes.slice().sort((a,b)=>a.slot-b.slot)
+          .map(n=>`${n.slot+1}${n.accent?'*':''}${n.off?(n.off>0?'+':'')+n.off:''}`).join(' ')
+      : 'NOTES none');
+    out.push(s.groups.length?'GROUPS '+s.groups.map(g=>g.len).join('+'):'GROUPS none');
+    if(i>0&&s.slide>0)out.push(`SLIDE ${s.slide}x`);
+    out.push(`PLAY ${s.repeat}x`);
+  });
+  return out.join('\n');
+}
+const CMDS=new Set(['BPM','TIME','SUB','NOTES','GROUPS','PLAY','SLIDE']);
+function fromScript(text){
+  const errors=[],out=[];
+  let st={bpm:80,beats:4,subdiv:4,notes:[],groups:[]},slide=0;
+  text.split(/\r?\n/).forEach((line,ln)=>{
+    const raw=line.replace(/(^|\s)(#|\/\/).*$/,'').trim();if(!raw)return;
+    const toks=raw.split(/\s+/);let i=0;
+    const err=m=>errors.push(`${ln+1}. sor: ${m}`);
+    while(i<toks.length){
+      const cmd=toks[i].toUpperCase();
+      if(!CMDS.has(cmd)){err(`ismeretlen parancs: „${toks[i]}"`);break}
+      i++;const args=[];
+      while(i<toks.length&&!CMDS.has(toks[i].toUpperCase()))args.push(toks[i++]);
+      if(args.length&&i<toks.length&&toks[i].toUpperCase()===cmd)i++;
+      if(!args.length)continue;
+      if(cmd==='BPM'){const v=parseFloat(args[0]);if(v>=20&&v<=400)st.bpm=v;else err('érvénytelen BPM')}
+      else if(cmd==='TIME'){const m=args[0].match(/^(\d+)/);const b=m?+m[1]:NaN;
+        if(b>=1&&b<=16)st.beats=b;else err('az ütésszám 1 és 16 között legyen')}
+      else if(cmd==='SUB'){const v=parseInt(args[0],10);
+        if(v>=1&&v<=8)st.subdiv=v;else err('a felosztás 1 és 8 között legyen')}
+      else if(cmd==='NOTES'){
+        const tot=st.beats*st.subdiv;
+        if(args[0].toLowerCase()==='none')st.notes=[];
+        else{const a=[];
+          for(const tk of args){
+            const m=tk.match(/^(\d+)(\*?)(?:([+-]\d+)%?)?(\*?)$/);
+            if(!m){err(`értelmezhetetlen hang: „${tk}"`);continue}
+            const slot=+m[1]-1;
+            if(slot<0||slot>=tot){err(`a ${slot+1}. slot nincs a rácson`);continue}
+            a.push({slot,accent:!!(m[2]||m[4]),off:m[3]?+m[3]:0});
+          }
+          st.notes=a}
+      }
+      else if(cmd==='GROUPS'){
+        const tot=st.beats*st.subdiv;
+        if(args[0].toLowerCase()==='none')st.groups=[];
+        else{const parts=args.join('-').split(/[-+,]/).filter(Boolean),lens=[];
+          let bad=false;
+          for(const p of parts){if(!/^\d+$/.test(p)||+p<1){err(`rossz csoporthossz: „${p}"`);bad=true;break}
+            lens.push(+p)}
+          if(!bad){
+            if(lens.reduce((a,b)=>a+b,0)>tot)err('a csoportok nem férnek el a rácson');
+            else{let at=0;st.groups=lens.map(L=>{const g={start:at,len:L};at+=L;return g})}}
+        }
+      }
+      else if(cmd==='SLIDE'){const v=parseInt(args[0],10);if(v>=0&&v<=8)slide=v;else err('rossz SLIDE')}
+      else if(cmd==='PLAY'){
+        const v=parseInt(args[0],10);
+        if(!(v>=1&&v<=99)){err('a PLAY 1 és 99 közötti ismétlést vár');return}
+        out.push(newStep({bpm:st.bpm,beats:st.beats,subdiv:st.subdiv,repeat:v,
+          slide:out.length?slide:0,notes:st.notes.map(n=>({...n})),groups:st.groups.map(g=>({...g}))}));
+        slide=0;
+      }
+    }
+  });
+  if(!out.length&&!errors.length)errors.push('a szövegben nincs egyetlen PLAY sem');
+  return {steps:out,errors};
+}
+
+// ===========================================================================
+//  Felület
+// ===========================================================================
+const $=id=>document.getElementById(id);
+const dial=$('dial'), dctx=dial.getContext('2d',{alpha:true});
+const msgs=$('msgs');
+let snap=true, groupMode=false, previewT=null, playing=false, rafId=0, plan=null, frames=0;
+
+// a kerekítés-mentes szélső eset ellen: érvénytelen érték mellett 0 méretű
+// vászon készülne, amin a toBlob csendben null-t ad, és az export érthetetlenül elszáll
+const fps=()=>Math.max(1,+$('fps').value||25);
+const outSize=()=>Math.max(120,+$('size').value||1080);
+const zoomV=()=>Math.max(.4,Math.min(1.3,(+$('zoom').value||100)/100));
+const renderOpts=()=>({zoom:zoomV(),numbers:true,counts:true,trail:true,dev:$('optDev').checked});
+
+function say(kind,text){const d=document.createElement('div');d.className='msg '+kind;d.textContent=text;msgs.appendChild(d)}
+const fmt=sec=>{const m=Math.floor(sec/60),s=sec-m*60;return `${m}:${s.toFixed(2).padStart(5,'0')}`};
+
+// --- szekvencia-lista ------------------------------------------------------
+function renderSteps(){
+  const box=$('steps');box.innerHTML='';
+  steps.forEach((s,i)=>{
+    if(i>0&&s.slide>0){
+      const m=document.createElement('div');m.className='slideMark';
+      m.textContent=`↝ átúszás ${s.slide} ütem alatt`;box.appendChild(m);
+    }
+    const el=document.createElement('div');
+    el.className='step'+(i===cur?' sel':'');
+    const no=document.createElement('div');no.className='stepNo';no.textContent=i+1;
+    const main=document.createElement('div');main.className='stepMain';
+    const g=document.createElement('div');g.className='stepGroups';
+    g.textContent=s.groups.length?s.groups.map(x=>x.len).join('+'):'— nincs csoport —';
+    const meta=document.createElement('div');meta.className='stepMeta';
+    meta.textContent=`${s.beats}/4 · sub ${s.subdiv} · ${s.bpm} BPM · ${s.notes.length} hang · ${s.repeat}×`;
+    main.append(g,meta);
+    const del=document.createElement('div');del.className='stepDel';del.textContent='✕';
+    del.title='lépés törlése';
+    del.onclick=e=>{e.stopPropagation();
+      if(steps.length<2){say('warn','Legalább egy lépésnek maradnia kell.');return}
+      steps.splice(i,1);if(cur>=steps.length)cur=steps.length-1;
+      if(steps[0])steps[0].slide=0;
+      refresh()};
+    el.append(no,main,del);
+    el.onclick=()=>{cur=i;refresh()};
+    box.appendChild(el);
+  });
+}
+function syncStepFields(){
+  const s=step();
+  $('stepRepeat').value=s.repeat;
+  $('stepSlide').value=s.slide;
+  $('stepBpm').value=s.bpm;
+  $('stepSlide').disabled=cur===0;
+}
+function refresh(){
+  if(steps[0])steps[0].slide=0;
+  renderSteps();syncStepFields();buildWheels();
+  $('snapBtn').classList.toggle('on',snap);
+  $('groupBtn').classList.toggle('on',groupMode);
+  $('dialHint').textContent=groupMode
+    ? 'Húzz a gyűrűn egy szakaszt: abból lesz a csoport. Kész csoportra koppintva törlöd.'
+    : 'Koppints a gyűrűre hangért. A hangra koppintva hangsúly, még egyszer törlés. Húzva mozgatod.';
+  plan=buildPlan();frames=Math.max(1,Math.round(plan.duration*fps()));
+  msgs.innerHTML='';
+  for(const w of plan.warnings)say('warn',w);
+  say('ok',`${steps.length} lépés · ${plan.duration.toFixed(2)} mp · ${frames} képkocka (${fps()} fps)`);
+  if(frames>1200)say('warn',`${frames} kocka — a PNG-sorozat több száz MB lesz. Az MP4 ilyenkor jobb.`);
+  $('scrub').max=Math.max(0,frames-1);
+  $('script').value=toScript();
+  drawDial();
+}
+
+// --- a tárcsa kirajzolása --------------------------------------------------
+function drawDial(){
+  const size=dial.width;
+  if(previewT!=null&&plan){renderFrame(dctx,size,plan,previewT,renderOpts());return}
+  const s=step();
+  dctx.setTransform(1,0,0,1,0,0);dctx.clearRect(0,0,size,size);
+  const stt={beats:s.beats,subdiv:s.subdiv,
+    groups:s.groups.map(g=>({startF:g.start,lenF:g.len,alpha:1})),
+    notes:s.notes.map(n=>({slotF:n.slot,accent:n.accent,off:n.off,alpha:1}))};
+  drawRing(dctx,size,stt,null,null,null,
+    Object.assign({},renderOpts(),{trail:false,dev:true,groupMode,noLive:true}));
+  if(paint&&paint.moved){                      // csoport-előnézet húzás közben
+    const g=geom(size,zoomV(),s);
+    const from=paint.acc>=0?paint.a0:paint.a0+paint.acc;
+    const len=Math.min(Math.abs(paint.acc),Math.PI*2);
+    const nr=Math.max(4*g.s,Math.min(28*g.s,g.stepA*0)); // csak a kapszula kell
+    dctx.lineWidth=1.4*g.s;dctx.strokeStyle='rgba(11,11,11,.55)';
+    dctx.fillStyle='rgba(255,255,255,.34)';
+    capsulePath(dctx,g.cx,g.cy,g.R,g.bandW*.42,from,from+len);dctx.fill();dctx.stroke();
+  }
+}
+
+// --- kerekek ---------------------------------------------------------------
+const tsOpts=[1,2,3,4,5,6,7,8], subOpts=[1,2,3,4,5,6,7,8];
+function buildWheel(el,options,index,isSub){
+  el.innerHTML='';
+  const inner=document.createElement('div');inner.className='wheelInner';
+  for(const off of [-1,0,1]){
+    const i=(index+off+options.length*2)%options.length,v=options[i];
+    const d=document.createElement('div');d.className='pickItem'+(off===0?' active':'');
+    if(isSub){const im=document.createElement('img');im.className='subIcon';im.src=icons[v];d.appendChild(im)}
+    else d.textContent=`${v}/4`;
+    inner.appendChild(d);
+  }
+  el.appendChild(inner);
+  if(el._drag)inner.style.transform=`translateY(${el._drag}px)`;
+}
+function buildWheels(){
+  const s=step();
+  buildWheel($('tsWheel'),tsOpts,tsOpts.indexOf(s.beats),false);
+  buildWheel($('subWheel'),subOpts,subOpts.indexOf(s.subdiv),true);
+}
+// A húzás állapota az elemen él, nem a záródásban: az elemeket minden
+// értékváltás újraépíti, a gesztusnak viszont túl kell élnie azt.
+function bindWheel(el,setter){
+  const stepPx=()=>{const inner=el.firstElementChild;
+    return inner&&inner.children.length>1?inner.children[1].offsetTop-inner.children[0].offsetTop:34};
+  const apply=()=>{const inner=el.firstElementChild;if(inner)inner.style.transform=`translateY(${el._drag}px)`};
+  let armed=false,startY=0;el._drag=0;
+  el.onpointerdown=e=>{e.preventDefault();armed=true;startY=e.clientY;el._drag=0;
+    el.classList.add('dragging');try{el.setPointerCapture(e.pointerId)}catch{}};
+  el.onpointermove=e=>{if(!armed)return;
+    const st=stepPx();let d=e.clientY-startY;
+    while(d>=st){setter(-1);startY+=st;d-=st}
+    while(d<=-st){setter(1);startY-=st;d+=st}
+    el._drag=d;apply()};
+  const end=e=>{if(!armed)return;armed=false;el.classList.remove('dragging');
+    const st=stepPx();
+    if(el._drag>=st/2)setter(-1);else if(el._drag<=-st/2)setter(1);
+    el._drag=0;apply();try{el.releasePointerCapture(e.pointerId)}catch{}};
+  el.onpointerup=end;el.onpointercancel=end;
+  el.onwheel=e=>{e.preventDefault();setter(e.deltaY>0?1:-1)};
+}
+// Rácsváltáskor a régi hangok/csoportok kilóghatnak: a hangokat a legközelebbi
+// új slotra tesszük, a rácsból kilógó csoportokat elhagyjuk.
+function regrid(s,oldTot){
+  const tot=totalSlots(s);
+  if(tot!==oldTot){
+    const seen=new Set(),kept=[];
+    for(const n of s.notes){
+      const k=Math.min(tot-1,Math.round(n.slot*tot/oldTot));
+      if(seen.has(k))continue;seen.add(k);kept.push({slot:k,accent:n.accent,off:n.off});
+    }
+    s.notes=kept;
+    s.groups=s.groups.filter(g=>g.start+g.len<=tot);
+  }
+}
+function setBeats(d){const s=step(),old=totalSlots(s);
+  let i=tsOpts.indexOf(s.beats);i=(i+d+tsOpts.length)%tsOpts.length;s.beats=tsOpts[i];
+  regrid(s,old);refresh()}
+function setSub(d){const s=step(),old=totalSlots(s);
+  let i=subOpts.indexOf(s.subdiv);i=(i+d+subOpts.length)%subOpts.length;s.subdiv=subOpts[i];
+  regrid(s,old);refresh()}
+
+// --- a tárcsa szerkesztése -------------------------------------------------
+let drag=null,paint=null;
+const posOf=ev=>{const r=dial.getBoundingClientRect();
+  return {x:(ev.clientX-r.left)*(dial.width/r.width),y:(ev.clientY-r.top)*(dial.height/r.height)}};
+function curGeom(){return geom(dial.width,zoomV(),step())}
+function noteRadiusNow(){
+  const s=step(),g=curGeom();
+  const chord=g.total>1?2*g.R*Math.sin(Math.PI/g.total):Infinity;
+  let gap=chord;
+  if(s.notes.length>1){
+    const as=s.notes.map(n=>norm2pi(noteAngle(g,n))).sort((u,v)=>u-v);
+    for(let i=0;i<as.length;i++){
+      const nx=i+1<as.length?as[i+1]:as[0]+Math.PI*2,d=nx-as[i];
+      if(d>1e-3)gap=Math.min(gap,2*g.R*Math.sin(d/2));
+    }
+  }
+  return Math.max(4*g.s,Math.min(28*g.s,gap*.46));
+}
+const onRing=(p,g)=>Math.abs(Math.hypot(p.x-g.cx,p.y-g.cy)-g.R)<Math.max(42,46*g.s);
+function nearestNote(p,g){
+  const s=step();let best=-1,bd=1e9;
+  s.notes.forEach((n,i)=>{
+    const a=noteAngle(g,n),d=Math.hypot(g.cx+Math.cos(a)*g.R-p.x,g.cy+Math.sin(a)*g.R-p.y);
+    if(d<bd){bd=d;best=i}});
+  return {i:best,d:bd};
+}
+const inGroup=(gr,slot,total)=>((slot-gr.start)%total+total)%total<gr.len;
+const groupAt=(slot)=>{const s=step(),t=totalSlots(s);return s.groups.find(gr=>inGroup(gr,slot,t))||null};
+// Átfedő szakaszoknál az új nyer: a régiből annyi marad, amit nem takart el —
+// akár két külön darabban is.
+function carveOut(taken,except){
+  const s=step(),t=totalSlots(s),tk=new Set(taken),out=[];
+  for(const gr of s.groups){
+    if(gr===except){out.push(gr);continue}      // a húzott/rajzolt szakasz marad
+    const idx=[];for(let k=0;k<gr.len;k++)idx.push((gr.start+k)%t);
+    const keep=idx.filter(i=>!tk.has(i));
+    if(!keep.length)continue;
+    if(keep.length===idx.length){out.push(gr);continue}
+    const sorted=[...new Set(keep)].sort((a,b)=>a-b),runs=[];let c=[sorted[0]];
+    for(let k=1;k<sorted.length;k++){
+      if(sorted[k]===sorted[k-1]+1)c.push(sorted[k]);else{runs.push(c);c=[sorted[k]]}}
+    runs.push(c);
+    if(runs.length>1&&runs[0][0]===0&&runs[runs.length-1].slice(-1)[0]===t-1)
+      runs[0]=[...runs.pop(),...runs[0]];
+    for(const r of runs)out.push({start:r[0],len:r.length});
+  }
+  s.groups=out;
+}
+dial.addEventListener('pointerdown',ev=>{
+  ev.preventDefault();dial.setPointerCapture(ev.pointerId);
+  if(previewT!=null){previewT=null;stopPlay()}
+  const p=posOf(ev),s=step(),g=curGeom();
+  const a=Math.atan2(p.y-g.cy,p.x-g.cx);
+  if(groupMode){
+    if(!onRing(p,g)){groupMode=false;refresh();return}
+    paint={a0:a,prev:a,acc:0,x0:p.x,y0:p.y,moved:false,id:ev.pointerId};return;
+  }
+  const {i,d}=nearestNote(p,g);
+  if(i>=0&&d<Math.max(noteRadiusNow()*1.3,12)){
+    drag={kind:'note',i,id:ev.pointerId,prev:a,acc:0,t0:performance.now(),
+      o:{...s.notes[i]}};
+    return;
+  }
+  if(onRing(p,g)){
+    const gr=groupAt(slotOf(g,a));
+    // Kész csoporton: húzva mozog, koppintva hangot rak le — ahogy az appban.
+    // A csoportok gyakran az egész kört lefedik, enélkül nem lehetne hangot tenni.
+    if(gr){drag={kind:'group',gr,id:ev.pointerId,prev:a,acc:0,t0:performance.now(),
+      tapA:a,start0:gr.start,
+      notes0:s.notes.filter(n=>inGroup(gr,n.slot,g.total)).map(n=>({n,slot:n.slot}))};return}
+    addNoteAt(g,a);refresh();
+  }
+});
+// Egy rácshelyre egy hang. GRID SNAP nélkül a koppintás helye adja az eltérést.
+function addNoteAt(g,a){
+  const s=step(),slot=slotOf(g,a);
+  if(s.notes.some(n=>n.slot===slot))return false;
+  const off=snap?0:Math.max(-49,Math.min(49,
+    Math.round(shortest(a,slotAngleOf(g,slot))/g.stepA*100)));
+  s.notes.push({slot,accent:false,off});
+  return true;
+}
+dial.addEventListener('pointermove',ev=>{
+  const p=posOf(ev),s=step(),g=curGeom();
+  const a=Math.atan2(p.y-g.cy,p.x-g.cx);
+  if(paint&&paint.id===ev.pointerId){
+    paint.acc+=shortest(a,paint.prev);paint.prev=a;
+    if(Math.hypot(p.x-paint.x0,p.y-paint.y0)>10)paint.moved=true;
+    drawDial();return;
+  }
+  if(!drag||drag.id!==ev.pointerId)return;
+  drag.acc+=shortest(a,drag.prev);drag.prev=a;
+  if(drag.kind==='note'){
+    const n=s.notes[drag.i];if(!n)return;
+    const slot=slotOf(g,a);
+    const off=snap?0:Math.max(-49,Math.min(49,Math.round(shortest(a,slotAngleOf(g,slot))/g.stepA*100)));
+    if(!s.notes.some((m,k)=>k!==drag.i&&m.slot===slot)){n.slot=slot;n.off=off}
+    else if(slot===n.slot)n.off=off;          // a saját helyén finomhangolhat
+    drawDial();
+  }else{
+    const d=Math.round(drag.acc/g.stepA);
+    const ns=((drag.start0+d)%g.total+g.total)%g.total;
+    if(ns!==drag.gr.start){
+      const shift=((ns-drag.gr.start)%g.total+g.total)%g.total;
+      drag.gr.start=ns;
+      for(const m of drag.notes0)m.n.slot=((m.n.slot+shift)%g.total+g.total)%g.total;
+      drawDial();
+    }
+  }
+});
+function endDrag(ev){
+  const s=step(),g=curGeom();
+  if(paint&&paint.id===ev.pointerId){
+    if(paint.moved){
+      const from=paint.acc>=0?paint.a0:paint.a0+paint.acc;
+      const len=Math.min(Math.abs(paint.acc),Math.PI*2);
+      const i1=Math.round((from-BASE)/g.stepA), i2=Math.round((from+len-BASE)/g.stepA);
+      const start=((i1%g.total)+g.total)%g.total;
+      const L=Math.max(1,Math.min(i2-i1+1,g.total));
+      const taken=[];for(let k=0;k<L;k++)taken.push((start+k)%g.total);
+      carveOut(taken);
+      s.groups.push({start,len:L});
+      s.groups.sort((a,b)=>a.start-b.start);
+    }else{
+      const a=Math.atan2(paint.y0-g.cy,paint.x0-g.cx);
+      const gr=groupAt(slotOf(g,a));
+      if(gr)s.groups.splice(s.groups.indexOf(gr),1);
+    }
+    paint=null;refresh();
+  }
+  if(drag&&drag.id===ev.pointerId){
+    const quick=performance.now()-drag.t0<300&&Math.abs(drag.acc)<g.stepA*.3;
+    if(drag.kind==='note'&&quick){
+      const n=s.notes[drag.i];
+      if(n){if(!n.accent)n.accent=true;else s.notes.splice(drag.i,1)}
+    }
+    if(drag.kind==='group'){
+      if(quick&&drag.tapA!=null)addNoteAt(g,drag.tapA);   // koppintás a csoporton: hang
+      else{
+        // Az elhúzott szakasz nyer: a fedésbe került szomszédokból annyi marad,
+        // amit nem takart el. Enélkül átfedő csoportok maradnának, és egy hang
+        // hovatartozása kétértelmű lenne.
+        const taken=[];
+        for(let k=0;k<drag.gr.len;k++)taken.push((drag.gr.start+k)%g.total);
+        carveOut(taken,drag.gr);
+      }
+      s.groups.sort((a,b)=>a.start-b.start);
+    }
+    drag=null;refresh();
+  }
+  try{dial.releasePointerCapture(ev.pointerId)}catch{}
+}
+dial.addEventListener('pointerup',endDrag);
+dial.addEventListener('pointercancel',endDrag);
+
+// --- vezérlők --------------------------------------------------------------
+bindWheel($('tsWheel'),setBeats);
+bindWheel($('subWheel'),setSub);
+$('snapBtn').onclick=()=>{snap=!snap;refresh()};
+$('groupBtn').onclick=()=>{groupMode=!groupMode;refresh()};
+$('clearBtn').onclick=()=>{const s=step();s.notes=[];s.groups=[];refresh()};
+$('addStep').onclick=()=>{const c=clone(step());c.slide=1;steps.splice(cur+1,0,c);cur++;refresh()};
+$('stepRepeat').oninput=e=>{const v=parseInt(e.target.value,10);if(v>=1&&v<=99){step().repeat=v;refresh()}};
+$('stepSlide').oninput=e=>{const v=parseInt(e.target.value,10);if(v>=0&&v<=8){step().slide=v;refresh()}};
+$('stepBpm').oninput=e=>{const v=parseInt(e.target.value,10);if(v>=20&&v<=400){step().bpm=v;refresh()}};
+for(const id of ['fps','size','zoom','optDev'])$(id).onchange=refresh;
+for(const b of document.querySelectorAll('.bgpick button'))
+  b.onclick=()=>{document.querySelectorAll('.bgpick button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');$('checker').className='checker '+(b.dataset.bg||'')};
+$('loadScript').onclick=()=>{
+  const r=fromScript($('script').value);
+  msgs.innerHTML='';
+  if(r.errors.length){for(const e of r.errors)say('err',e);return}
+  steps=r.steps;cur=0;refresh();
+};
+
+// --- előnézet --------------------------------------------------------------
+function stopPlay(){playing=false;$('playBtn').textContent='▶';if(rafId)cancelAnimationFrame(rafId);rafId=0}
+$('scrub').oninput=()=>{stopPlay();previewT=(+$('scrub').value)/fps();
+  $('tc').textContent=`${fmt(previewT)} · ${+$('scrub').value+1}/${frames}`;drawDial()};
+$('playBtn').onclick=()=>{
+  if(playing){stopPlay();return}
+  if(!frames)return;
+  playing=true;$('playBtn').textContent='❚❚';
+  const t0=performance.now(),f0=+$('scrub').value;
+  const tick=now=>{
+    if(!playing)return;
+    const f=(f0+Math.round((now-t0)/1000*fps()))%frames;
+    $('scrub').value=f;previewT=f/fps();
+    $('tc').textContent=`${fmt(previewT)} · ${f+1}/${frames}`;
+    drawDial();rafId=requestAnimationFrame(tick);
+  };
+  rafId=requestAnimationFrame(tick);
+};
+
+// ===========================================================================
+//  ZIP (tömörítés nélkül) — a PNG már tömörített
+// ===========================================================================
+const CRC=(()=>{const t=new Uint32Array(256);
+  for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}
+  return t})();
+const crc32=b=>{let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC[(c^b[i])&0xFF]^(c>>>8);
+  return (c^0xFFFFFFFF)>>>0};
+function zipStore(files){
+  const enc=new TextEncoder(),locals=[],centrals=[];let off=0;
+  for(const f of files){
+    const name=enc.encode(f.name),crc=crc32(f.data),n=f.data.length;
+    const lh=new Uint8Array(30+name.length),dv=new DataView(lh.buffer);
+    dv.setUint32(0,0x04034b50,true);dv.setUint16(4,20,true);dv.setUint16(12,0x2821,true);
+    dv.setUint32(14,crc,true);dv.setUint32(18,n,true);dv.setUint32(22,n,true);
+    dv.setUint16(26,name.length,true);lh.set(name,30);
+    const ch=new Uint8Array(46+name.length),cv=new DataView(ch.buffer);
+    cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);
+    cv.setUint16(14,0x2821,true);cv.setUint32(16,crc,true);cv.setUint32(20,n,true);
+    cv.setUint32(24,n,true);cv.setUint16(28,name.length,true);cv.setUint32(42,off,true);
+    ch.set(name,46);
+    locals.push(lh,f.data);centrals.push(ch);off+=lh.length+n;
+  }
+  const cd=centrals.reduce((a,b)=>a+b.length,0);
+  const end=new Uint8Array(22),ev=new DataView(end.buffer);
+  ev.setUint32(0,0x06054b50,true);ev.setUint16(8,files.length,true);
+  ev.setUint16(10,files.length,true);ev.setUint32(12,cd,true);ev.setUint32(16,off,true);
+  return new Blob([...locals,...centrals,end],{type:'application/zip'});
+}
+// ===========================================================================
+//  MP4 konténer (H.264) — saját író
+// ===========================================================================
+// A MediaRecorder a FALI ÓRÁRÓL veszi az időbélyegeket, nem a betolt kockákból.
+// Emiatt a kimenet hossza attól függött, mennyi ideig tartott az export, és
+// háttérbe tett fülön (ahol a setTimeout másodpercesre lassul) több perces,
+// 1–2 fps-es fájl lett belőle. Itt a WebCodecs kódol kockánként, pontos
+// időbélyeggel, a konténert pedig magunk írjuk — így az fps pontosan az lesz,
+// amit megadtál, és az export sebessége már nem szól bele az eredménybe.
+function buildMp4(samples,{width,height,fps,description}){
+  const cat=a=>{let L=0;for(const x of a)L+=x.length;
+    const o=new Uint8Array(L);let p=0;for(const x of a){o.set(x,p);p+=x.length}return o};
+  const u32=v=>{const a=new Uint8Array(4);new DataView(a.buffer).setUint32(0,v>>>0);return a};
+  const u16=v=>{const a=new Uint8Array(2);new DataView(a.buffer).setUint16(0,v);return a};
+  const str=s=>new Uint8Array([...s].map(c=>c.charCodeAt(0)));
+  const box=(t,...p)=>{const b=cat(p);return cat([u32(b.length+8),str(t),b])};
+  const full=(t,ver,fl,...p)=>box(t,new Uint8Array([ver,(fl>>16)&255,(fl>>8)&255,fl&255]),...p);
+  const MATRIX=cat([u32(0x00010000),u32(0),u32(0),u32(0),u32(0x00010000),u32(0),
+                    u32(0),u32(0),u32(0x40000000)]);
+  const n=samples.length, TS=fps*1000, DELTA=1000, dur=n*DELTA;
+  const movieDur=Math.round(dur/TS*1000);          // a mozi idősávja 1000
+
+  const ftyp=box('ftyp',str('isom'),u32(512),str('isom'),str('iso2'),str('avc1'),str('mp41'));
+  const payload=cat(samples.map(s=>s.data));
+  const mdat=cat([u32(payload.length+8),str('mdat'),payload]);
+  const dataOffset=ftyp.length+8;                  // az első minta helye a fájlban
+
+  const avcC=box('avcC',description);
+  const avc1=box('avc1',new Uint8Array(6),u16(1),u16(0),u16(0),u32(0),u32(0),u32(0),
+    u16(width),u16(height),u32(0x00480000),u32(0x00480000),u32(0),u16(1),
+    new Uint8Array(32),u16(0x0018),new Uint8Array([0xFF,0xFF]),avcC);
+  const keys=[];samples.forEach((s,i)=>{if(s.key)keys.push(i+1)});
+  const stbl=box('stbl',
+    full('stsd',0,0,u32(1),avc1),
+    full('stts',0,0,u32(1),u32(n),u32(DELTA)),
+    full('stss',0,0,u32(keys.length),...keys.map(u32)),
+    full('stsc',0,0,u32(1),u32(1),u32(n),u32(1)),
+    full('stsz',0,0,u32(0),u32(n),...samples.map(s=>u32(s.data.length))),
+    full('stco',0,0,u32(1),u32(dataOffset)));
+  const minf=box('minf',
+    full('vmhd',0,1,u16(0),u16(0),u16(0),u16(0)),
+    box('dinf',full('dref',0,0,u32(1),full('url ',0,1))),
+    stbl);
+  const mdia=box('mdia',
+    full('mdhd',0,0,u32(0),u32(0),u32(TS),u32(dur),u16(0x55c4),u16(0)),
+    full('hdlr',0,0,u32(0),str('vide'),u32(0),u32(0),u32(0),str('VideoHandler\0')),
+    minf);
+  const trak=box('trak',
+    full('tkhd',0,3,u32(0),u32(0),u32(1),u32(0),u32(movieDur),u32(0),u32(0),
+      u16(0),u16(0),u16(0),u16(0),MATRIX,u32(width*65536),u32(height*65536)),
+    mdia);
+  const moov=box('moov',
+    full('mvhd',0,0,u32(0),u32(0),u32(1000),u32(movieDur),u32(0x00010000),u16(0x0100),
+      u16(0),u32(0),u32(0),MATRIX,new Uint8Array(24),u32(2)),
+    trak);
+  return new Blob([ftyp,mdat,moov],{type:'video/mp4'});
+}
+// A setTimeout háttérbe tett fülön másodpercesre lassul; ez itt nem rontaná el a
+// kimenetet, csak lassítaná. A MessageChannel viszont nem esik ilyen korlát alá.
+const _mc=new MessageChannel();
+const yieldNow=()=>new Promise(r=>{_mc.port1.onmessage=()=>r();_mc.port2.postMessage(0)});
+
+const download=(blob,name)=>{const u=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),4000)};
+
+// ===========================================================================
+//  Export
+// ===========================================================================
+// A videóhoz a grafikát előbb az app hátterére lapítjuk, és csak az így kapott
+// TÖMÖR képet tesszük a kulcsszínre. Enélkül a féláttetsző elemek (sáv, csóva,
+// csoportkitöltés) összekeverednének a zölddel, és kulcsozás után szegélyt meg
+// hibás áttetszőséget hagynának. A sziluettet külön maszk-menet adja.
+function makeComposer(N){
+  const mk=()=>{const c=document.createElement('canvas');c.width=N;c.height=N;
+    return {c,x:c.getContext('2d',{alpha:true})}};
+  const A=mk(),M=mk(),F=mk();
+  return (plan,t,opt,key)=>{
+    MASK=false;renderFrame(A.x,N,plan,t,opt);        // valódi kép, alfával
+    MASK=true; renderFrame(M.x,N,plan,t,opt);        // tömör sziluett
+    MASK=false;
+    F.x.setTransform(1,0,0,1,0,0);
+    F.x.globalCompositeOperation='source-over';
+    F.x.clearRect(0,0,N,N);
+    F.x.fillStyle=APPBG;F.x.fillRect(0,0,N,N);
+    F.x.globalCompositeOperation='destination-in';   // csak a sziluettben marad
+    F.x.drawImage(M.c,0,0);
+    F.x.globalCompositeOperation='source-over';
+    F.x.drawImage(A.c,0,0);                          // rá a valódi, áttetsző kép
+    return F.c;
+  };
+}
+async function exportPng(){
+  const N=outSize(),f=fps(),o=renderOpts();
+  const cv=document.createElement('canvas');cv.width=N;cv.height=N;
+  const cx=cv.getContext('2d',{alpha:true});
+  const files=[];
+  for(let i=0;i<frames;i++){
+    MASK=false;renderFrame(cx,N,plan,i/f,o);
+    const b=await new Promise(r=>cv.toBlob(r,'image/png'));
+    files.push({name:`macronome_${String(i+1).padStart(5,'0')}.png`,
+      data:new Uint8Array(await b.arrayBuffer())});
+    if(i%4===0){$('progBar').style.width=(i/frames*100).toFixed(1)+'%';await yieldNow()}
+  }
+  const zip=zipStore(files);
+  download(zip,`macronome_${N}p${f}fps_${frames}f.zip`);
+  say('ok',`Kész: ${frames} PNG alfával, ${(zip.size/1048576).toFixed(1)} MB.`);
+}
+async function exportMp4(){
+  if(typeof VideoEncoder==='undefined')
+    throw new Error('ez a böngésző nem tud kockánként kódolni — használd a PNG-sorozatot');
+  const N=outSize(),f=fps(),o=renderOpts(),key=$('keyColor').value;
+  const compose=makeComposer(N);
+  const out=document.createElement('canvas');out.width=N;out.height=N;
+  const ox=out.getContext('2d',{alpha:false});
+  const samples=[];let desc=null,encErr=null;
+  const enc=new VideoEncoder({
+    output:(c,md)=>{
+      if(!desc&&md&&md.decoderConfig&&md.decoderConfig.description)
+        desc=new Uint8Array(md.decoderConfig.description);
+      const b=new Uint8Array(c.byteLength);c.copyTo(b);
+      samples.push({data:b,key:c.type==='key'});
+    },
+    error:e=>{encErr=e}});
+  enc.configure({codec:'avc1.640028',width:N,height:N,
+    bitrate:N>=1440?24e6:12e6,framerate:f,avc:{format:'avc'}});
+  // Sűrű kulcskocka: fél másodpercenként. Hosszú GOP mellett a vágóban (AE)
+  // döcög a scrub és pontatlan a keresés — a méretnövekedés ezt megéri.
+  const gop=Math.max(1,Math.round(f/2));
+  for(let i=0;i<frames;i++){
+    if(encErr)throw encErr;
+    const flat=compose(plan,i/f,o,key);
+    ox.fillStyle=key;ox.fillRect(0,0,N,N);
+    ox.drawImage(flat,0,0);
+    const vf=new VideoFrame(out,{timestamp:Math.round(i*1e6/f),duration:Math.round(1e6/f)});
+    enc.encode(vf,{keyFrame:i%gop===0});
+    vf.close();
+    // a kódoló másik szálon dolgozik: ha elszalad a sor, megvárjuk — eseményre,
+    // nem időzítőre, hogy háttérben se lassuljon le feleslegesen
+    if(enc.encodeQueueSize>10)
+      await new Promise(r=>{enc.ondequeue=()=>{if(enc.encodeQueueSize<=4){enc.ondequeue=null;r()}}});
+    if(i%15===0){$('progBar').style.width=(i/frames*100).toFixed(1)+'%';
+      $('tc').textContent=`kódolás ${i+1}/${frames}`;await yieldNow()}
+  }
+  await enc.flush();enc.close();
+  if(encErr)throw encErr;
+  if(!desc)throw new Error('a kódoló nem adott vissza leírót');
+  if(samples.length!==frames)
+    throw new Error(`${frames} kocka helyett ${samples.length} kódolódott`);
+  const blob=buildMp4(samples,{width:N,height:N,fps:f,description:desc});
+  download(blob,`macronome_${N}p${f}fps.mp4`);
+  say('ok',`Kész: MP4, ${(blob.size/1048576).toFixed(1)} MB, ${frames} kocka, `
+    +`${(frames/f).toFixed(2)} mp @ ${f} fps. A háttér ${key} — a vágóban kulcsozd ki.`);
+}
+async function runExport(fn,btn){
+  stopPlay();previewT=null;
+  const bs=[...document.querySelectorAll('#mp4Btn,#pngBtn')];
+  bs.forEach(b=>b.disabled=true);
+  $('prog').style.display='block';$('progBar').style.width='0';
+  msgs.innerHTML='';
+  try{await fn()}
+  catch(e){say('err','Az export elakadt: '+e.message)}
+  finally{bs.forEach(b=>b.disabled=false);
+    setTimeout(()=>{$('prog').style.display='none';$('progBar').style.width='0'},800);
+    drawDial()}
+}
+$('pngBtn').onclick=()=>runExport(exportPng);
+$('mp4Btn').onclick=()=>runExport(exportMp4);
+
+// --- indulás ---------------------------------------------------------------
+steps=[newStep({slide:0,notes:[{slot:0,accent:true,off:0},{slot:3,accent:false,off:0},
+  {slot:6,accent:false,off:0},{slot:9,accent:false,off:0},{slot:12,accent:false,off:0}],
+  groups:[{start:0,len:3},{start:3,len:3},{start:6,len:3},{start:9,len:3},{start:12,len:4}]})];
+cur=0;refresh();
+
+window.__mx={steps:()=>steps,setSteps:s=>{steps=s;cur=0;refresh()},cur:()=>cur,
+  buildPlan,renderFrame,drawRing,slideState,matchGroups,fromScript,toScript,zipStore,
+  makeComposer,geom,getPlan:()=>plan,getFrames:()=>frames,refresh,
+  setMask:v=>{MASK=v},dial};
+})();
+</script>
+</body>
+</html>
